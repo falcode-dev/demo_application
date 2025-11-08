@@ -1,0 +1,196 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+}
+
+.inputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+  outline: none;
+}
+
+/* アイコンがある場合のデフォルトパディング調整（sizeが指定されていない場合） */
+.input.hasLeftIcon:not(.size-small):not(.size-medium):not(.size-large) {
+  padding-left: 2.5rem !important;
+}
+
+.input.hasRightIcon:not(.size-small):not(.size-medium):not(.size-large) {
+  padding-right: 2.5rem !important;
+}
+
+.input::placeholder {
+  color: var(--color-text-disabled);
+}
+
+.input:disabled {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+.input:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.input.focused {
+  border-color: var(--color-border-focus);
+}
+
+.input.error {
+  border-color: var(--color-border-error);
+}
+
+.input.error:focus {
+  border-color: var(--color-border-error);
+  box-shadow: var(--shadow-focus-error);
+}
+
+/* サイズ */
+.size-small {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  font-size: 0.875rem;
+  min-height: 2rem;
+}
+
+.size-small.hasLeftIcon {
+  padding-left: 2.25rem !important;
+}
+
+.size-small.hasRightIcon {
+  padding-right: 2.25rem !important;
+}
+
+.size-medium {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  font-size: 1rem;
+  min-height: 2.5rem;
+}
+
+.size-medium.hasLeftIcon {
+  padding-left: 2.5rem !important;
+}
+
+.size-medium.hasRightIcon {
+  padding-right: 2.5rem !important;
+}
+
+.size-large {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  font-size: 1.125rem;
+  min-height: 3rem;
+}
+
+.size-large.hasLeftIcon {
+  padding-left: 3rem !important;
+}
+
+.size-large.hasRightIcon {
+  padding-right: 3rem !important;
+}
+
+/* アイコン */
+.leftIcon,
+.rightIcon {
+  position: absolute;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.leftIcon {
+  left: var(--spacing-md);
+}
+
+.rightIcon {
+  right: var(--spacing-md);
+}
+
+.size-small .leftIcon,
+.size-small .rightIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.size-small .leftIcon {
+  left: 0.625rem;
+}
+
+.size-small .rightIcon {
+  right: 0.625rem;
+}
+
+.size-medium .leftIcon,
+.size-medium .rightIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.size-large .leftIcon,
+.size-large .rightIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.input:focus ~ .rightIcon,
+.input.focused ~ .rightIcon {
+  color: var(--color-main);
+}
+
+.input.error ~ .rightIcon {
+  color: var(--color-error);
+}
+
+.input:disabled ~ .leftIcon,
+.input:disabled ~ .rightIcon {
+  color: var(--color-text-disabled);
+}
+
+/* ヘルパーテキスト */
+.helperText {
+  font-size: var(--font-size-xs);
+  min-height: 1rem;
+  font-family: var(--font-family);
+}
+
+.helpText {
+  color: var(--color-text-secondary);
+}
+
+.errorText {
+  color: var(--color-error);
+}
+
