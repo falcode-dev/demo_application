@@ -1,0 +1,187 @@
+.toast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md, 12px);
+  padding: var(--spacing-md, 12px) var(--spacing-lg, 16px);
+  background-color: var(--color-bg-primary, #ffffff);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-lg, 0 4px 12px rgba(0, 0, 0, 0.15));
+  min-width: 300px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideIn 0.3s ease-out;
+  z-index: 10000;
+}
+
+.content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm, 8px);
+  flex: 1;
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.message {
+  font-size: var(--font-size-base, 14px);
+  line-height: 1.6;
+  color: var(--color-text-primary, #333333);
+  white-space: pre-line;
+  font-family: monospace;
+  flex: 1;
+}
+
+.message .emptyLine {
+  height: 0.5em;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--color-text-secondary, #666666);
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  color: var(--color-text-primary, #333333);
+}
+
+.closeButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* タイプ別のスタイル */
+.toast.error {
+  border-left: 4px solid #ff3333;
+}
+
+.toast.error .icon {
+  color: #ff3333;
+}
+
+.toast.success {
+  border-left: 4px solid #28a745;
+}
+
+.toast.success .icon {
+  color: #28a745;
+}
+
+.toast.warning {
+  border-left: 4px solid #ffc107;
+}
+
+.toast.warning .icon {
+  color: #ffc107;
+}
+
+.toast.info {
+  border-left: 4px solid var(--color-main, #007bff);
+}
+
+.toast.info .icon {
+  color: var(--color-main, #007bff);
+}
+
+/* 位置別のスタイル */
+.toast.top-right {
+  position: fixed;
+  top: var(--spacing-lg, 20px);
+  right: var(--spacing-lg, 20px);
+}
+
+.toast.top-left {
+  position: fixed;
+  top: var(--spacing-lg, 20px);
+  left: var(--spacing-lg, 20px);
+}
+
+.toast.top-center {
+  position: fixed;
+  top: var(--spacing-lg, 20px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.toast.bottom-right {
+  position: fixed;
+  bottom: var(--spacing-lg, 20px);
+  right: var(--spacing-lg, 20px);
+}
+
+.toast.bottom-left {
+  position: fixed;
+  bottom: var(--spacing-lg, 20px);
+  left: var(--spacing-lg, 20px);
+}
+
+.toast.bottom-center {
+  position: fixed;
+  bottom: var(--spacing-lg, 20px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toast.top-center,
+.toast.bottom-center {
+  animation: slideInCenter 0.3s ease-out;
+}
+
+@keyframes slideInCenter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .toast {
+    min-width: calc(100vw - 2rem);
+    max-width: calc(100vw - 2rem);
+  }
+
+  .toast.top-right,
+  .toast.top-left,
+  .toast.bottom-right,
+  .toast.bottom-left {
+    left: var(--spacing-md, 16px);
+    right: var(--spacing-md, 16px);
+    transform: none;
+  }
+
+  .toast.top-center,
+  .toast.bottom-center {
+    left: var(--spacing-md, 16px);
+    right: var(--spacing-md, 16px);
+    transform: none;
+  }
+}
+
