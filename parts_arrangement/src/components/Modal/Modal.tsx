@@ -22,6 +22,10 @@ export interface ModalProps {
   closeOnOverlayClick?: boolean;
   /** ESCキーで閉じるか */
   closeOnEscape?: boolean;
+  /** オーバーレイを非表示にするか（2つ目のモーダルの下に表示される場合など） */
+  hideOverlay?: boolean;
+  /** z-indexを高くするか（2つ目のモーダルなど） */
+  higherZIndex?: boolean;
   /** カスタムクラス名 */
   className?: string;
   /** カスタムスタイル */
@@ -38,6 +42,8 @@ export const Modal = ({
   showCloseButton = true,
   closeOnOverlayClick = true,
   closeOnEscape = true,
+  hideOverlay = false,
+  higherZIndex = false,
   className,
   style,
 }: ModalProps) => {
@@ -52,19 +58,31 @@ export const Modal = ({
     if (isOpen) {
       setShouldRender(true);
       setIsClosing(false);
+      // アニメーションのために少し遅延
+      const timer = setTimeout(() => {
+        setIsClosing(false);
+      }, 10);
+      return () => clearTimeout(timer);
+    } else if (!isOpen && shouldRender) {
+      // モーダルが閉じられた時は閉じるアニメーションを開始
+      setIsClosing(true);
+      timeoutRef.current = setTimeout(() => {
+        setShouldRender(false);
+        setIsClosing(false);
+      }, 300); // アニメーション時間に合わせる
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      };
     }
-  }, [isOpen]);
+  }, [isOpen, shouldRender]);
 
-  // 閉じるアニメーション
+  // 閉じる処理
   const handleClose = useCallback(() => {
-    if (isClosing) return; // 既に閉じる処理中の場合は何もしない
-    setIsClosing(true);
-    timeoutRef.current = setTimeout(() => {
-      setShouldRender(false);
-      setIsClosing(false);
-      onClose();
-    }, 300); // アニメーション時間に合わせる
-  }, [onClose, isClosing]);
+    if (isClosing || !isOpen) return;
+    onClose();
+  }, [onClose, isClosing, isOpen]);
 
   // ESCキーで閉じる
   useEffect(() => {
@@ -82,9 +100,8 @@ export const Modal = ({
 
   // モーダルが開いている時、bodyのスクロールを無効化
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && shouldRender) {
       document.body.style.overflow = 'hidden';
-      setIsClosing(false);
     } else {
       document.body.style.overflow = '';
     }
@@ -95,11 +112,11 @@ export const Modal = ({
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [isOpen]);
+  }, [isOpen, shouldRender]);
 
   // オーバーレイクリックで閉じる
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (closeOnOverlayClick && e.target === overlayRef.current && !isClosing) {
+    if (closeOnOverlayClick && e.target === overlayRef.current && !isClosing && isOpen) {
       handleClose();
     }
   };
@@ -120,6 +137,8 @@ export const Modal = ({
   const overlayClasses = [
     styles.overlay,
     isClosing && styles.closing,
+    hideOverlay && styles.hideOverlay,
+    higherZIndex && styles.higherZIndex,
   ]
     .filter(Boolean)
     .join(' ');
@@ -184,4 +203,3 @@ export const Modal = ({
 };
 
 Modal.displayName = 'Modal';
-

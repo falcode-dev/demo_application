@@ -16,3 +16,6 @@ export type { SpinnerProps } from './Spinner';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 
+export { Checkbox } from './Checkbox';
+export type { CheckboxProps } from './Checkbox';
+

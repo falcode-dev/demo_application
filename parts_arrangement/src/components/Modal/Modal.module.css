@@ -12,10 +12,22 @@
   z-index: 1000;
   padding: var(--spacing-lg);
   animation: fadeIn 0.2s ease-out;
+  transition: background-color 0.2s ease-out, backdrop-filter 0.2s ease-out;
+}
+
+/* 2つ目のモーダル（確認モーダルなど）はより高いz-index */
+.overlay.higherZIndex {
+  z-index: 1001;
 }
 
 .overlay.closing {
   animation: fadeOut 0.3s ease-out forwards;
+}
+
+.overlay.hideOverlay {
+  background-color: transparent;
+  backdrop-filter: none;
+  transition: background-color 0.2s ease-out, backdrop-filter 0.2s ease-out;
 }
 
 @keyframes fadeIn {
@@ -188,7 +200,23 @@
     max-width: calc(100vw - 2rem);
     width: calc(100vw - 2rem);
     max-height: 95vh;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  /* 手配モーダル（large）は下部に表示し、フッターの角も丸くする */
+  .modal.size-large {
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) var(--radius-lg);
+    margin-top: auto;
+  }
+
+  /* 確認モーダル（small）は中央に表示 */
+  .modal.size-small {
+    border-radius: var(--radius-lg);
+    margin-top: 0;
+  }
+
+  /* その他のサイズ（medium）も下部に表示 */
+  .modal.size-medium {
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) var(--radius-lg);
     margin-top: auto;
   }
 

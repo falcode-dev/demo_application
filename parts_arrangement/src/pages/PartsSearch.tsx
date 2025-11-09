@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Button, Input, Select, Spinner } from '../components';
+import { useState, useEffect } from 'react';
+import { Button, Input, Select, Spinner, Modal, DatePicker } from '../components';
 import type { SelectOption } from '../components';
 import { searchParts, buOptions, type PartsSearchResult } from '../services/mockData';
+import { FiCheckCircle } from 'react-icons/fi';
 import styles from './PartsSearch.module.css';
 
 interface PartsSearchProps {
@@ -15,6 +16,9 @@ export const PartsSearch = ({ onPartsNumberClick }: PartsSearchProps) => {
   const [results, setResults] = useState<PartsSearchResult[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [selectedParts, setSelectedParts] = useState<Set<string>>(new Set());
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState<boolean>(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false);
 
   const handleSearch = async () => {
     setLoading(true);
@@ -37,14 +41,58 @@ export const PartsSearch = ({ onPartsNumberClick }: PartsSearchProps) => {
   const handleReset = () => {
     setHasSearched(false);
     setResults([]);
+    setSelectedParts(new Set());
     setBu('');
     setPartsNumber('');
     setPartsName('');
   };
 
+  const handleCheckboxChange = (partsNumber: string) => {
+    const newSelected = new Set(selectedParts);
+    if (newSelected.has(partsNumber)) {
+      newSelected.delete(partsNumber);
+    } else {
+      newSelected.add(partsNumber);
+    }
+    setSelectedParts(newSelected);
+  };
+
+  // OrderModalを開く
+  const handleOpenOrderModal = () => {
+    setIsConfirmModalOpen(false); // 念のため確認モーダルを閉じる
+    setIsOrderModalOpen(true);
+  };
+
+  // 確認モーダルを開く
+  const handleOpenConfirmModal = () => {
+    setIsConfirmModalOpen(true);
+  };
+
+  // 確認モーダルを閉じる
+  const handleCloseConfirmModal = () => {
+    setIsConfirmModalOpen(false);
+  };
+
+  // 確認モーダルでOKを押した時
+  const handleConfirm = () => {
+    setIsConfirmModalOpen(false);
+    setIsOrderModalOpen(false);
+    setSelectedParts(new Set());
+  };
+
+  // OrderModalを閉じる（確認モーダルも閉じる）
+  const handleCloseOrderModal = () => {
+    setIsConfirmModalOpen(false);
+    setIsOrderModalOpen(false);
+  };
+
   const handlePartsNumberClick = (partsNumber: string) => {
     if (onPartsNumberClick) {
       onPartsNumberClick(partsNumber);
+    } else {
+      // フォールバック: 別タブでパーツ詳細画面を開く
+      const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
+      window.open(detailUrl, '_blank');
     }
   };
 
@@ -109,6 +157,23 @@ export const PartsSearch = ({ onPartsNumberClick }: PartsSearchProps) => {
               <table className={styles.resultsTable}>
                 <thead>
                   <tr>
+                    <th>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          className={styles.checkbox}
+                          checked={selectedParts.size > 0 && selectedParts.size === results.length}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedParts(new Set(results.map(r => r.partsNumber)));
+                            } else {
+                              setSelectedParts(new Set());
+                            }
+                          }}
+                        />
+                        <span className={styles.checkmark}></span>
+                      </label>
+                    </th>
                     <th>BU</th>
                     <th>パーツ番号</th>
                     <th>パーツ名称／型式（英）</th>
@@ -124,6 +189,17 @@ export const PartsSearch = ({ onPartsNumberClick }: PartsSearchProps) => {
                 <tbody>
                   {results.map((item, index) => (
                     <tr key={index}>
+                      <td>
+                        <label className={styles.checkboxLabel}>
+                          <input
+                            type="checkbox"
+                            className={styles.checkbox}
+                            checked={selectedParts.has(item.partsNumber)}
+                            onChange={() => handleCheckboxChange(item.partsNumber)}
+                          />
+                          <span className={styles.checkmark}></span>
+                        </label>
+                      </td>
                       <td>{item.bu}</td>
                       <td>
                         <button
@@ -154,12 +230,350 @@ export const PartsSearch = ({ onPartsNumberClick }: PartsSearchProps) => {
         </div>
       )}
 
-      {hasSearched && results.length > 0 && (
+      {!loading && hasSearched && results.length > 0 && (
         <div className={styles.actionButtonContainer}>
-          <Button variant="default">有償パーツ手配</Button>
+          <Button
+            variant="default"
+            onClick={handleOpenOrderModal}
+            disabled={selectedParts.size === 0}
+          >
+            有償パーツ手配
+          </Button>
         </div>
       )}
+
+      {/* パーツ手配作成モーダル */}
+      <OrderModal
+        isOpen={isOrderModalOpen}
+        onClose={handleCloseOrderModal}
+        selectedPartsNumbers={Array.from(selectedParts)}
+        results={results}
+        onConfirm={handleOpenConfirmModal}
+        isConfirmModalOpen={isConfirmModalOpen}
+        onCloseConfirmModal={handleCloseConfirmModal}
+      />
+
+      {/* 確認画面モーダル */}
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={handleCloseConfirmModal}
+        onConfirm={handleConfirm}
+      />
     </div>
+  );
+};
+
+// パーツ手配作成モーダル
+interface OrderModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedPartsNumbers: string[];
+  results: PartsSearchResult[];
+  onConfirm: () => void;
+  isConfirmModalOpen?: boolean;
+  onCloseConfirmModal?: () => void;
+}
+
+const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm, isConfirmModalOpen, onCloseConfirmModal }: OrderModalProps) => {
+  const [partsOrderCopy, setPartsOrderCopy] = useState<string>('');
+  const [soNumber, setSoNumber] = useState<string>('');
+  const [deliveryDate, setDeliveryDate] = useState<Date | null>(null);
+  const [subCategory, setSubCategory] = useState<string>('');
+  const [customerName, setCustomerName] = useState<string>('');
+  const [category, setCategory] = useState<string>('');
+  const [woLinkedSo, setWoLinkedSo] = useState<string>('');
+  const [deliveryType, setDeliveryType] = useState<string>('');
+  const [memo, setMemo] = useState<string>('');
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+  const selectedParts = results.filter(r => selectedPartsNumbers.includes(r.partsNumber));
+
+  // 数量の初期化（初期は空のまま）
+  useEffect(() => {
+    // 新しく選択されたパーツのみ、数量が未設定の場合は空（undefined）のままにする
+    selectedParts.forEach(part => {
+      if (!(part.partsNumber in quantities)) {
+        // 初期値は設定しない（空のまま）
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPartsNumbers]);
+
+  const handleQuantityChange = (partsNumber: string, value: string) => {
+    // 数値のみ許可し、3桁まで制限
+    const numericValue = value.replace(/[^0-9]/g, '').slice(0, 3);
+    if (numericValue === '') {
+      // 空の場合は0に設定
+      setQuantities(prev => ({
+        ...prev,
+        [partsNumber]: 0
+      }));
+    } else {
+      const numValue = parseInt(numericValue, 10);
+      if (!isNaN(numValue) && numValue >= 0 && numValue <= 999) {
+        setQuantities(prev => ({
+          ...prev,
+          [partsNumber]: numValue
+        }));
+      }
+    }
+  };
+
+  const subCategoryOptions: SelectOption[] = [
+    { value: '', label: '選択してください' },
+    { value: 'sub1', label: 'サブカテゴリ1' },
+    { value: 'sub2', label: 'サブカテゴリ2' },
+    { value: 'sub3', label: 'サブカテゴリ3' },
+  ];
+
+  const categoryOptions: SelectOption[] = [
+    { value: '', label: '選択してください' },
+    { value: 'cat1', label: 'カテゴリ1' },
+    { value: 'cat2', label: 'カテゴリ2' },
+    { value: 'cat3', label: 'カテゴリ3' },
+  ];
+
+  const deliveryTypeOptions: SelectOption[] = [
+    { value: '', label: '選択してください' },
+    { value: 'type1', label: '通常配送' },
+    { value: 'type2', label: '速達' },
+    { value: 'type3', label: '当日配送' },
+  ];
+
+  // キャンセルボタンの処理
+  const handleCancel = () => {
+    // 確認モーダルが開いている場合は確認モーダルのみ閉じる
+    if (isConfirmModalOpen && onCloseConfirmModal) {
+      onCloseConfirmModal();
+    } else {
+      // そうでない場合はOrderModalを閉じる
+      onClose();
+    }
+  };
+
+  const footer = (
+    <div className={styles.modalFooter}>
+      <Button variant="sub" onClick={handleCancel}>
+        キャンセル
+      </Button>
+      <Button variant="default" onClick={onConfirm}>
+        確認画面
+      </Button>
+    </div>
+  );
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="パーツ手配の作成"
+      footer={footer}
+      size="large"
+      closeOnOverlayClick={!isConfirmModalOpen}
+      closeOnEscape={!isConfirmModalOpen}
+      hideOverlay={isConfirmModalOpen}
+    >
+      <div className={styles.orderModalContent}>
+        <div className={styles.orderForm}>
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Input
+                label="パーツオーダのコピー"
+                value={partsOrderCopy}
+                onChange={(e) => setPartsOrderCopy(e.target.value)}
+                placeholder="パーツオーダのコピーを入力"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Input
+                label="SO番号"
+                value={soNumber}
+                onChange={(e) => setSoNumber(e.target.value)}
+                placeholder="SO番号を入力"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <DatePicker
+                label="客先納入希望日"
+                value={deliveryDate}
+                onChange={setDeliveryDate}
+                placeholder="日付を選択"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Select
+                label="サブカテゴリ"
+                options={subCategoryOptions}
+                value={subCategory}
+                onChange={(e) => setSubCategory(e.target.value)}
+                placeholder="選択してください"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Input
+                label="顧客名"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="顧客名を入力"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Select
+                label="カテゴリ"
+                options={categoryOptions}
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="選択してください"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Input
+                label="WOに連携されたSO"
+                value={woLinkedSo}
+                onChange={(e) => setWoLinkedSo(e.target.value)}
+                placeholder="WOに連携されたSOを入力"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Select
+                label="配送タイプ"
+                options={deliveryTypeOptions}
+                value={deliveryType}
+                onChange={(e) => setDeliveryType(e.target.value)}
+                placeholder="選択してください"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <label className={styles.textareaLabel}>メモ</label>
+              <textarea
+                className={styles.textarea}
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                placeholder="メモを入力"
+                rows={3}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.selectedPartsList}>
+          <h3 className={styles.selectedPartsTitle}>選択したパーツ</h3>
+          <div className={styles.tableWrapper}>
+            <table className={styles.resultsTable}>
+              <thead>
+                <tr>
+                  <th>BU</th>
+                  <th>パーツ番号</th>
+                  <th>パーツ名称／型式（英）</th>
+                  <th>ユニット</th>
+                  <th>シグナルコード</th>
+                  <th>販売ステータス</th>
+                  <th>インテルフラグ</th>
+                  <th>消耗品フラグ</th>
+                  <th>備考</th>
+                  <th>区分</th>
+                  <th>個数</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedParts.map((item, index) => (
+                  <tr key={index}>
+                    <td>{item.bu}</td>
+                    <td>{item.partsNumber}</td>
+                    <td>{item.partsName}</td>
+                    <td>{item.unit}</td>
+                    <td>{item.signalCode}</td>
+                    <td>{item.salesStatus}</td>
+                    <td>{item.intelFlag}</td>
+                    <td>{item.consumableFlag}</td>
+                    <td>{item.remarks}</td>
+                    <td>{item.category}</td>
+                    <td>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={3}
+                        value={quantities[item.partsNumber] !== undefined ? quantities[item.partsNumber] : ''}
+                        onChange={(e) => handleQuantityChange(item.partsNumber, e.target.value)}
+                        onBlur={(e) => {
+                          // フォーカスが外れた時、空の場合は0を表示
+                          if (e.target.value === '') {
+                            handleQuantityChange(item.partsNumber, '0');
+                          }
+                        }}
+                        className={styles.quantityInput}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+// 確認画面モーダル
+interface ConfirmModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}
+
+const ConfirmModal = ({ isOpen, onClose, onConfirm }: ConfirmModalProps) => {
+  const footer = (
+    <div className={styles.modalFooter}>
+      <Button variant="sub" onClick={onClose}>
+        キャンセル
+      </Button>
+      <Button variant="default" onClick={onConfirm}>
+        OK
+      </Button>
+    </div>
+  );
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      footer={footer}
+      size="small"
+      showCloseButton={false}
+      higherZIndex={true}
+    >
+      <div className={styles.confirmModalContent}>
+        <div className={styles.confirmHeader}>
+          <FiCheckCircle className={styles.confirmIcon} />
+          <h2 className={styles.confirmTitle}>パーツ手配の確認</h2>
+        </div>
+        <div className={styles.confirmMessage}>
+          <p>選択済みのパーツを手配します。</p>
+          <p>よろしいですか？</p>
+        </div>
+      </div>
+    </Modal>
   );
 };
 

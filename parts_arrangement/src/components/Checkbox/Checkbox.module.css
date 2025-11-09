@@ -1,0 +1,140 @@
+.checkboxWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.checkboxInput {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.checkboxCustom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-bg-primary);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+.checkboxCustom::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-main);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.checkboxInput:checked + .checkboxCustom {
+  background-color: var(--color-main);
+  border-color: var(--color-main);
+}
+
+.checkboxInput:checked + .checkboxCustom::before {
+  opacity: 1;
+}
+
+.checkboxInput:focus-visible + .checkboxCustom {
+  outline: 2px solid var(--color-main);
+  outline-offset: 2px;
+}
+
+.checkboxInput:disabled + .checkboxCustom {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border);
+}
+
+.checkboxInput:disabled ~ .checkboxLabel {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkboxIcon {
+  width: 100%;
+  height: 100%;
+  color: var(--color-text-inverse);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all var(--transition-fast);
+}
+
+.checkboxInput:checked + .checkboxCustom .checkboxIcon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.checkboxInput:indeterminate + .checkboxCustom {
+  background-color: var(--color-main);
+  border-color: var(--color-main);
+}
+
+.checkboxInput:indeterminate + .checkboxCustom::before {
+  opacity: 0.5;
+}
+
+.checkboxInput:indeterminate + .checkboxCustom .checkboxIcon {
+  opacity: 0;
+  transform: scale(0);
+}
+
+.checkboxInput:indeterminate + .checkboxCustom::after {
+  content: '';
+  position: absolute;
+  width: 60%;
+  height: 2px;
+  background-color: var(--color-text-inverse);
+  border-radius: 1px;
+}
+
+.checkboxLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+
+/* サイズ */
+.size-small .checkboxCustom {
+  width: 16px;
+  height: 16px;
+}
+
+.size-small .checkboxIcon {
+  width: 10px;
+  height: 10px;
+}
+
+.size-medium .checkboxCustom {
+  width: 20px;
+  height: 20px;
+}
+
+.size-medium .checkboxIcon {
+  width: 12px;
+  height: 12px;
+}
+
+.size-large .checkboxCustom {
+  width: 24px;
+  height: 24px;
+}
+
+.size-large .checkboxIcon {
+  width: 14px;
+  height: 14px;
+}
+
