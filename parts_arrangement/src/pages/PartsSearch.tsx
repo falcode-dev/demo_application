@@ -9,7 +9,7 @@ interface PartsSearchProps {
   onPartsNumberClick?: (partsNumber: string) => void;
 }
 
-export const PartsSearch = ({ onPartsNumberClick }: PartsSearchProps) => {
+export const PartsSearch = ({ }: PartsSearchProps) => {
   const [bu, setBu] = useState<string>('');
   const [partsNumber, setPartsNumber] = useState<string>('');
   const [partsName, setPartsName] = useState<string>('');
@@ -86,14 +86,44 @@ export const PartsSearch = ({ onPartsNumberClick }: PartsSearchProps) => {
     setIsOrderModalOpen(false);
   };
 
+  // PowerApps環境かどうかを検出
+  const isPowerAppsEnvironment = () => {
+    try {
+      // PowerAppsのWEBリソースとして表示されている場合、parentにXrmオブジェクトがある
+      return window.parent !== window && (window.parent as any).Xrm !== undefined;
+    } catch (e) {
+      // クロスオリジンの場合はエラーになるが、iframe内であることは確認できる
+      return window.parent !== window;
+    }
+  };
+
   const handlePartsNumberClick = (partsNumber: string) => {
-    if (onPartsNumberClick) {
-      onPartsNumberClick(partsNumber);
+    // 常に別タブでパーツ詳細画面を開く（元の検索画面はそのまま）
+    const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
+
+    if (isPowerAppsEnvironment()) {
+      // PowerApps環境の場合、親フレームにメッセージを送信
+      try {
+        // Xrm APIが利用可能な場合
+        if ((window.parent as any).Xrm?.Navigation?.openUrl) {
+          (window.parent as any).Xrm.Navigation.openUrl(detailUrl, { openInNewWindow: true });
+        } else {
+          // フォールバック: postMessageを使用
+          window.parent.postMessage({
+            type: 'openUrl',
+            url: detailUrl,
+            target: '_blank'
+          }, '*');
+        }
+      } catch (e) {
+        // エラーが発生した場合は通常のwindow.openを使用
+        window.open(detailUrl, '_blank');
+      }
     } else {
-      // フォールバック: 別タブでパーツ詳細画面を開く
-      const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
+      // 通常のWeb環境の場合、別タブで開く（元の検索画面はそのまま）
       window.open(detailUrl, '_blank');
     }
+    // onPartsNumberClickは呼び出さない（元の検索画面をそのままにするため）
   };
 
   return (

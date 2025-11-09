@@ -16,7 +16,7 @@ interface PartsDetailProps {
   onBack?: () => void;
 }
 
-export const PartsDetail = ({ partsNumber, onPartsNumberClick, onBack }: PartsDetailProps) => {
+export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
   const [detail, setDetail] = useState<PartsDetailType | null>(null);
   const [inventory, setInventory] = useState<InventoryInfo[]>([]);
   const [alternativeParts, setAlternativeParts] = useState<PartsSearchResult[]>([]);
@@ -63,13 +63,62 @@ export const PartsDetail = ({ partsNumber, onPartsNumberClick, onBack }: PartsDe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partsNumber, region]);
 
+  // PowerApps環境かどうかを検出
+  const isPowerAppsEnvironment = () => {
+    try {
+      // PowerAppsのWEBリソースとして表示されている場合、parentにXrmオブジェクトがある
+      return window.parent !== window && (window.parent as any).Xrm !== undefined;
+    } catch (e) {
+      // クロスオリジンの場合はエラーになるが、iframe内であることは確認できる
+      return window.parent !== window;
+    }
+  };
+
   const handleAlternativePartsClick = (altPartsNumber: string) => {
-    if (onPartsNumberClick) {
-      onPartsNumberClick(altPartsNumber);
+    // 常に別タブでパーツ詳細画面を開く（元の詳細画面はそのまま）
+    const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(altPartsNumber)}`;
+
+    if (isPowerAppsEnvironment()) {
+      // PowerApps環境の場合、親フレームにメッセージを送信
+      try {
+        // Xrm APIが利用可能な場合
+        if ((window.parent as any).Xrm?.Navigation?.openUrl) {
+          (window.parent as any).Xrm.Navigation.openUrl(detailUrl, { openInNewWindow: true });
+        } else {
+          // フォールバック: postMessageを使用
+          window.parent.postMessage({
+            type: 'openUrl',
+            url: detailUrl,
+            target: '_blank'
+          }, '*');
+        }
+      } catch (e) {
+        // エラーが発生した場合は通常のwindow.openを使用
+        window.open(detailUrl, '_blank');
+      }
     } else {
-      // フォールバック: 別タブでパーツ詳細画面を開く
-      const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(altPartsNumber)}`;
+      // 通常のWeb環境の場合、別タブで開く（元の詳細画面はそのまま）
       window.open(detailUrl, '_blank');
+    }
+    // onPartsNumberClickは呼び出さない（元の詳細画面をそのままにするため）
+  };
+
+  const handleClose = () => {
+    // ブラウザのタブを閉じる
+    if (isPowerAppsEnvironment()) {
+      // PowerApps環境の場合、親フレームにメッセージを送信
+      try {
+        // ページを閉じるメッセージを送信
+        window.parent.postMessage({
+          type: 'closePage'
+        }, '*');
+      } catch (e) {
+        // エラーが発生した場合はwindow.close()を試みる
+        window.close();
+      }
+    } else {
+      // 通常のWeb環境の場合、ブラウザのタブを閉じる
+      window.close();
     }
   };
 
@@ -88,11 +137,9 @@ export const PartsDetail = ({ partsNumber, onPartsNumberClick, onBack }: PartsDe
       <div className={styles.container}>
         <div className={styles.errorContainer}>
           <p>パーツ詳細情報が見つかりませんでした</p>
-          {onBack && (
-            <button className={styles.backButton} onClick={onBack}>
-              閉じる
-            </button>
-          )}
+          <button className={styles.backButton} onClick={handleClose}>
+            閉じる
+          </button>
         </div>
       </div>
     );
@@ -102,11 +149,9 @@ export const PartsDetail = ({ partsNumber, onPartsNumberClick, onBack }: PartsDe
     <div className={styles.container}>
       <div className={styles.header}>
         {/* <h1 className={styles.title}>パーツ詳細</h1> */}
-        {onBack && (
-          <button className={styles.backButton} onClick={onBack}>
-            閉じる
-          </button>
-        )}
+        <button className={styles.backButton} onClick={handleClose}>
+          閉じる
+        </button>
       </div>
 
       <div className={styles.contentGrid}>
