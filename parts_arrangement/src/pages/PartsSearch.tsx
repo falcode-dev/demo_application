@@ -86,44 +86,13 @@ export const PartsSearch = ({ }: PartsSearchProps) => {
     setIsOrderModalOpen(false);
   };
 
-  // PowerApps環境かどうかを検出
-  const isPowerAppsEnvironment = () => {
-    try {
-      // PowerAppsのWEBリソースとして表示されている場合、parentにXrmオブジェクトがある
-      return window.parent !== window && (window.parent as any).Xrm !== undefined;
-    } catch (e) {
-      // クロスオリジンの場合はエラーになるが、iframe内であることは確認できる
-      return window.parent !== window;
-    }
-  };
-
   const handlePartsNumberClick = (partsNumber: string) => {
     // 常に別タブでパーツ詳細画面を開く（元の検索画面はそのまま）
     const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
 
-    if (isPowerAppsEnvironment()) {
-      // PowerApps環境の場合、親フレームにメッセージを送信
-      try {
-        // Xrm APIが利用可能な場合
-        if ((window.parent as any).Xrm?.Navigation?.openUrl) {
-          (window.parent as any).Xrm.Navigation.openUrl(detailUrl, { openInNewWindow: true });
-        } else {
-          // フォールバック: postMessageを使用
-          window.parent.postMessage({
-            type: 'openUrl',
-            url: detailUrl,
-            target: '_blank'
-          }, '*');
-        }
-      } catch (e) {
-        // エラーが発生した場合は通常のwindow.openを使用
-        window.open(detailUrl, '_blank');
-      }
-    } else {
-      // 通常のWeb環境の場合、別タブで開く（元の検索画面はそのまま）
-      window.open(detailUrl, '_blank');
-    }
-    // onPartsNumberClickは呼び出さない（元の検索画面をそのままにするため）
+    // PowerApps環境でも通常のWeb環境でも、window.openでタブを開く
+    // PowerAppsのWebリソース内からwindow.openを呼び出すと、ブラウザのタブで開かれる
+    window.open(detailUrl, '_blank');
   };
 
   return (

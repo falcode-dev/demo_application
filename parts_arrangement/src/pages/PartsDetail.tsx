@@ -78,29 +78,9 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
     // 常に別タブでパーツ詳細画面を開く（元の詳細画面はそのまま）
     const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(altPartsNumber)}`;
 
-    if (isPowerAppsEnvironment()) {
-      // PowerApps環境の場合、親フレームにメッセージを送信
-      try {
-        // Xrm APIが利用可能な場合
-        if ((window.parent as any).Xrm?.Navigation?.openUrl) {
-          (window.parent as any).Xrm.Navigation.openUrl(detailUrl, { openInNewWindow: true });
-        } else {
-          // フォールバック: postMessageを使用
-          window.parent.postMessage({
-            type: 'openUrl',
-            url: detailUrl,
-            target: '_blank'
-          }, '*');
-        }
-      } catch (e) {
-        // エラーが発生した場合は通常のwindow.openを使用
-        window.open(detailUrl, '_blank');
-      }
-    } else {
-      // 通常のWeb環境の場合、別タブで開く（元の詳細画面はそのまま）
-      window.open(detailUrl, '_blank');
-    }
-    // onPartsNumberClickは呼び出さない（元の詳細画面をそのままにするため）
+    // PowerApps環境でも通常のWeb環境でも、window.openでタブを開く
+    // PowerAppsのWebリソース内からwindow.openを呼び出すと、ブラウザのタブで開かれる
+    window.open(detailUrl, '_blank');
   };
 
   const handleClose = () => {
