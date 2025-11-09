@@ -77,8 +77,8 @@ export const PartsRegistration = () => {
   // 確定処理のローディング状態
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
   
-  // エラー状態
-  const [hasValidationError, setHasValidationError] = useState<boolean>(false);
+  // エラー状態（未使用だが、将来的に使用する可能性があるため保持）
+  const [, setHasValidationError] = useState<boolean>(false);
   
   // トースト通知の状態
   const [toastMessage, setToastMessage] = useState<string | null>(null);

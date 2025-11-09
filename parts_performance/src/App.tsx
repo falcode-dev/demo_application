@@ -25,12 +25,6 @@ function App() {
     setPartsNumber(partsNum);
   }, []);
 
-  const handleBack = () => {
-    setPartsNumber(null);
-    // URLを更新
-    window.history.pushState({}, '', window.location.pathname);
-  };
-
   // ブラウザの戻る/進むボタンに対応
   useEffect(() => {
     const handlePopState = () => {

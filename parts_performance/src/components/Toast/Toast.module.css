@@ -179,9 +179,28 @@
 
   .toast.top-center,
   .toast.bottom-center {
-    left: var(--spacing-md, 16px);
-    right: var(--spacing-md, 16px);
-    transform: none;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+
+  .toast.top-center {
+    animation: slideInCenterMobile 0.3s ease-out;
+  }
+
+  .toast.bottom-center {
+    animation: slideInCenterMobile 0.3s ease-out;
+  }
+}
+
+@keyframes slideInCenterMobile {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 }
 

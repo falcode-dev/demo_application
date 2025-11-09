@@ -4,11 +4,7 @@ import type { SelectOption } from '../components';
 import { searchParts, buOptions, type PartsSearchResult } from '../services/mockData';
 import styles from './PartsSearch.module.css';
 
-interface PartsSearchProps {
-  onPartsNumberClick?: (partsNumber: string) => void;
-}
-
-export const PartsSearch = ({ }: PartsSearchProps) => {
+export const PartsSearch = () => {
   const [bu, setBu] = useState<string>('');
   const [partsNumber, setPartsNumber] = useState<string>('');
   const [partsName, setPartsName] = useState<string>('');
@@ -185,12 +181,6 @@ export const PartsSearch = ({ }: PartsSearchProps) => {
               <p>検索結果がありません</p>
             </div>
           )}
-        </div>
-      )}
-
-      {hasSearched && results.length > 0 && (
-        <div className={styles.actionButtonContainer}>
-          <Button variant="default">有償パーツ手配</Button>
         </div>
       )}
     </div>

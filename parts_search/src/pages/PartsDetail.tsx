@@ -12,8 +12,6 @@ import styles from './PartsDetail.module.css';
 
 interface PartsDetailProps {
   partsNumber: string;
-  onPartsNumberClick?: (partsNumber: string) => void;
-  onBack?: () => void;
 }
 
 export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
@@ -100,7 +98,6 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
       // 通常のWeb環境の場合、別タブで開く（元の詳細画面はそのまま）
       window.open(detailUrl, '_blank');
     }
-    // onPartsNumberClickは呼び出さない（元の詳細画面をそのままにするため）
   };
 
   const handleClose = () => {

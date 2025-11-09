@@ -1,8 +1,9 @@
 import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes, CSSProperties } from 'react';
 import type { IconType } from 'react-icons';
-import type { ButtonVariant } from '../../types/components';
 import styles from './Button.module.css';
+
+export type ButtonVariant = 'default' | 'primary' | 'secondary' | 'danger' | 'success' | 'warning' | 'sub' | 'accent';
 
 export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'size'> {
   /** ボタンのテキスト */

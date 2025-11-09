@@ -25,19 +25,6 @@ function App() {
     setPartsNumber(partsNum);
   }, []);
 
-  const handlePartsNumberClick = (num: string) => {
-    setPartsNumber(num);
-    // URLを更新（履歴に追加）
-    const newUrl = `${window.location.pathname}?partsNumber=${encodeURIComponent(num)}`;
-    window.history.pushState({ partsNumber: num }, '', newUrl);
-  };
-
-  const handleBack = () => {
-    setPartsNumber(null);
-    // URLを更新
-    window.history.pushState({}, '', window.location.pathname);
-  };
-
   // ブラウザの戻る/進むボタンに対応
   useEffect(() => {
     const handlePopState = () => {
@@ -57,11 +44,9 @@ function App() {
           {partsNumber ? (
             <PartsDetail
               partsNumber={partsNumber}
-              onBack={handleBack}
-              onPartsNumberClick={handlePartsNumberClick}
             />
           ) : (
-            <PartsSearch onPartsNumberClick={handlePartsNumberClick} />
+            <PartsSearch />
           )}
         </main>
       </div>
