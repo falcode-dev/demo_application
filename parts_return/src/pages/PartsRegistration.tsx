@@ -64,7 +64,7 @@ export const PartsRegistration = () => {
     <div className={styles.container}>
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>パーツ返却</h2>
+          {/* <h2 className={styles.sectionTitle}>パーツ返却</h2> */}
         </div>
         <div>
           {selectedParts ? (
