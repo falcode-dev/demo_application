@@ -274,13 +274,8 @@ interface OrderModalProps {
 }
 
 const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm, isConfirmModalOpen, onCloseConfirmModal }: OrderModalProps) => {
-  const [partsOrderCopy, setPartsOrderCopy] = useState<string>('');
-  const [soNumber, setSoNumber] = useState<string>('');
   const [deliveryDate, setDeliveryDate] = useState<Date | null>(null);
-  const [subCategory, setSubCategory] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>('');
-  const [category, setCategory] = useState<string>('');
-  const [woLinkedSo, setWoLinkedSo] = useState<string>('');
   const [deliveryType, setDeliveryType] = useState<string>('');
   const [memo, setMemo] = useState<string>('');
   const [quantities, setQuantities] = useState<Record<string, number>>({});
@@ -317,20 +312,6 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
       }
     }
   };
-
-  const subCategoryOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: 'sub1', label: 'サブカテゴリ1' },
-    { value: 'sub2', label: 'サブカテゴリ2' },
-    { value: 'sub3', label: 'サブカテゴリ3' },
-  ];
-
-  const categoryOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: 'cat1', label: 'カテゴリ1' },
-    { value: 'cat2', label: 'カテゴリ2' },
-    { value: 'cat3', label: 'カテゴリ3' },
-  ];
 
   const deliveryTypeOptions: SelectOption[] = [
     { value: '', label: '選択してください' },
@@ -376,27 +357,6 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
         <div className={styles.orderForm}>
           <div className={styles.formRow}>
             <div className={styles.formField}>
-              <Input
-                label="パーツオーダのコピー"
-                value={partsOrderCopy}
-                onChange={(e) => setPartsOrderCopy(e.target.value)}
-                placeholder="パーツオーダのコピーを入力"
-                fullWidth
-              />
-            </div>
-            <div className={styles.formField}>
-              <Input
-                label="SO番号"
-                value={soNumber}
-                onChange={(e) => setSoNumber(e.target.value)}
-                placeholder="SO番号を入力"
-                fullWidth
-              />
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
               <DatePicker
                 label="客先納入希望日"
                 value={deliveryDate}
@@ -406,46 +366,11 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
               />
             </div>
             <div className={styles.formField}>
-              <Select
-                label="サブカテゴリ"
-                options={subCategoryOptions}
-                value={subCategory}
-                onChange={(e) => setSubCategory(e.target.value)}
-                placeholder="選択してください"
-                fullWidth
-              />
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
               <Input
                 label="顧客名"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 placeholder="顧客名を入力"
-                fullWidth
-              />
-            </div>
-            <div className={styles.formField}>
-              <Select
-                label="カテゴリ"
-                options={categoryOptions}
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="選択してください"
-                fullWidth
-              />
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <Input
-                label="WOに連携されたSO"
-                value={woLinkedSo}
-                onChange={(e) => setWoLinkedSo(e.target.value)}
-                placeholder="WOに連携されたSOを入力"
                 fullWidth
               />
             </div>
