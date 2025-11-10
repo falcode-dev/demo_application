@@ -124,7 +124,7 @@ export const PartsRegistration = () => {
           isOpen={isReturnModalOpen}
           onClose={handleCloseReturnModal}
           partsData={results[selectedReturnIndex]}
-          onRegister={(returnData) => {
+          onRegister={(_returnData) => {
             // 返却処理
             const newResults = [...results];
             newResults[selectedReturnIndex].isReturned = true;
