@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Button, Select, Toast } from '../components';
+import { useState, useEffect } from 'react';
+import { Button, Select, Modal, Input, Spinner, Toast } from '../components';
 import type { SelectOption } from '../components';
 import { searchParts, buOptions, type PartsSearchResult } from '../services/mockData';
 import { FiX } from 'react-icons/fi';
@@ -27,58 +27,29 @@ interface RegistrationRow extends PartsSearchResult {
   partsCategoryError?: boolean;
 }
 
-interface ValidationError {
-  partsNumber: string;
-  partsName: string;
-  errors: string[];
-}
 
 export const PartsRegistration = () => {
-  // 上部セクションの状態
-  const [upperSelection, setUpperSelection] = useState<string>('');
+  // セクションの状態
   const [upperBu, setUpperBu] = useState<string>('');
   const [upperCustomerSite, setUpperCustomerSite] = useState<string>('');
   const [upperOrderSource, setUpperOrderSource] = useState<string>('');
-  const [upperResults, setUpperResults] = useState<RegistrationRow[]>([]);
+  const [results, setResults] = useState<RegistrationRow[]>([]);
 
-  // 下部セクションの状態
-  const [lowerResults, setLowerResults] = useState<RegistrationRow[]>([]);
+  // パーツ検索モーダルの状態
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
 
-  // 確定処理のローディング状態
-  const [isConfirming, setIsConfirming] = useState<boolean>(false);
-  
-  // エラー状態（未使用だが、将来的に使用する可能性があるため保持）
-  const [, setHasValidationError] = useState<boolean>(false);
-  
   // トースト通知の状態
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  
-  // エラー行への参照
-  const upperErrorRefs = useRef<{ [key: number]: HTMLTableRowElement | null }>({});
-  const lowerErrorRefs = useRef<{ [key: number]: HTMLTableRowElement | null }>({});
 
-  // モックデータの読み込み（初期表示用）
-  useEffect(() => {
-    const loadInitialData = async () => {
-      const searchResults = await searchParts({});
-      const upperData: RegistrationRow[] = searchResults.map(item => ({
-        ...item,
-        checked: false,
-        consumptionQuantity: undefined,
-        billingCategory: '',
-      }));
-      const lowerData: RegistrationRow[] = searchResults.map(item => ({
-        ...item,
-        checked: false,
-        consumptionQuantity: undefined,
-        billingCategory: '',
-        partsCategory: '',
-      }));
-      setUpperResults(upperData);
-      setLowerResults(lowerData);
-    };
-    loadInitialData();
-  }, []);
+  // パーツ検索モーダルを開く
+  const handleOpenSearchModal = () => {
+    setIsSearchModalOpen(true);
+  };
+
+  // パーツ検索モーダルを閉じる
+  const handleCloseSearchModal = () => {
+    setIsSearchModalOpen(false);
+  };
 
   // 請求区分の選択肢
   const billingCategoryOptions: SelectOption[] = [
@@ -88,17 +59,10 @@ export const PartsRegistration = () => {
     { value: '保証', label: '保証' },
   ];
 
-  // パーツ区分の選択肢
-  const partsCategoryOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: '顧客提供', label: '顧客提供' },
-    { value: '預託在庫', label: '預託在庫' },
-  ];
-
-  // 上部セクションの全件チェック/解除
-  const handleUpperSelectAll = () => {
-    const allChecked = upperResults.every(item => item.checked || item.isDisabled);
-    const newResults = upperResults.map(item => {
+  // 全件チェック/解除
+  const handleSelectAll = () => {
+    const allChecked = results.every(item => item.checked || item.isDisabled);
+    const newResults = results.map(item => {
       if (item.isDisabled) {
         return item; // 非活性の行は変更しない
       }
@@ -108,30 +72,28 @@ export const PartsRegistration = () => {
         hasError: false, // チェックを変更したらエラーをクリア
       };
     });
-    setUpperResults(newResults);
-    setHasValidationError(false);
+    setResults(newResults);
   };
 
-  // 上部セクションのチェックボックス変更
-  const handleUpperCheckboxChange = (index: number) => {
-    const newResults = [...upperResults];
+  // チェックボックス変更
+  const handleCheckboxChange = (index: number) => {
+    const newResults = [...results];
     if (newResults[index].isDisabled) {
       return; // 非活性の行は変更不可
     }
     newResults[index].checked = !newResults[index].checked;
     newResults[index].hasError = false; // チェックを変更したらエラーをクリア
-    setUpperResults(newResults);
-    setHasValidationError(false);
+    setResults(newResults);
   };
 
-  // 上部セクションの消費数量変更
-  const handleUpperQuantityChange = (index: number, value: string) => {
-    if (upperResults[index].isDisabled) {
+  // 消費数量変更
+  const handleQuantityChange = (index: number, value: string) => {
+    if (results[index].isDisabled) {
       return; // 非活性の行は変更不可
     }
     // 数値のみ許可し、3桁まで制限
     const numericValue = value.replace(/[^0-9]/g, '').slice(0, 3);
-    const newResults = [...upperResults];
+    const newResults = [...results];
     if (numericValue === '') {
       // 空の場合は0に設定
       newResults[index].consumptionQuantity = 0;
@@ -144,284 +106,24 @@ export const PartsRegistration = () => {
       }
     }
     newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setUpperResults(newResults);
-    setHasValidationError(false);
+    setResults(newResults);
   };
 
-  // 上部セクションの請求区分変更
-  const handleUpperBillingCategoryChange = (index: number, value: string) => {
-    if (upperResults[index].isDisabled) {
+  // 請求区分変更
+  const handleBillingCategoryChange = (index: number, value: string) => {
+    if (results[index].isDisabled) {
       return; // 非活性の行は変更不可
     }
-    const newResults = [...upperResults];
+    const newResults = [...results];
     newResults[index].billingCategory = value;
     // 選択肢を選んだらチェックボックスをオンにする
     if (value !== '') {
       newResults[index].checked = true;
     }
     newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setUpperResults(newResults);
-    setHasValidationError(false);
+    setResults(newResults);
   };
 
-  // 下部セクションの全件チェック/解除
-  const handleLowerSelectAll = () => {
-    const allChecked = lowerResults.every(item => item.checked || item.isDisabled);
-    const newResults = lowerResults.map(item => {
-      if (item.isDisabled) {
-        return item; // 非活性の行は変更しない
-      }
-      return {
-        ...item,
-        checked: !allChecked,
-        hasError: false, // チェックを変更したらエラーをクリア
-      };
-    });
-    setLowerResults(newResults);
-    setHasValidationError(false);
-  };
-
-  // 下部セクションのチェックボックス変更
-  const handleLowerCheckboxChange = (index: number) => {
-    const newResults = [...lowerResults];
-    if (newResults[index].isDisabled) {
-      return; // 非活性の行は変更不可
-    }
-    newResults[index].checked = !newResults[index].checked;
-    newResults[index].hasError = false; // チェックを変更したらエラーをクリア
-    setLowerResults(newResults);
-    setHasValidationError(false);
-  };
-
-  // 下部セクションの消費数量変更
-  const handleLowerQuantityChange = (index: number, value: string) => {
-    if (lowerResults[index].isDisabled) {
-      return; // 非活性の行は変更不可
-    }
-    // 数値のみ許可し、3桁まで制限
-    const numericValue = value.replace(/[^0-9]/g, '').slice(0, 3);
-    const newResults = [...lowerResults];
-    if (numericValue === '') {
-      // 空の場合は0に設定
-      newResults[index].consumptionQuantity = 0;
-    } else {
-      const numValue = parseInt(numericValue, 10);
-      if (!isNaN(numValue) && numValue >= 0 && numValue <= 999) {
-        newResults[index].consumptionQuantity = numValue;
-        // 数値を入力したらチェックボックスをオンにする
-        newResults[index].checked = true;
-      }
-    }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setLowerResults(newResults);
-    setHasValidationError(false);
-  };
-
-  // 下部セクションのパーツ区分変更
-  const handleLowerPartsCategoryChange = (index: number, value: string) => {
-    if (lowerResults[index].isDisabled) {
-      return; // 非活性の行は変更不可
-    }
-    const newResults = [...lowerResults];
-    newResults[index].partsCategory = value;
-    // 選択肢を選んだらチェックボックスをオンにする
-    if (value !== '') {
-      newResults[index].checked = true;
-    }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setLowerResults(newResults);
-    setHasValidationError(false);
-  };
-
-  // 下部セクションの請求区分変更
-  const handleLowerBillingCategoryChange = (index: number, value: string) => {
-    if (lowerResults[index].isDisabled) {
-      return; // 非活性の行は変更不可
-    }
-    const newResults = [...lowerResults];
-    newResults[index].billingCategory = value;
-    // 選択肢を選んだらチェックボックスをオンにする
-    if (value !== '') {
-      newResults[index].checked = true;
-    }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setLowerResults(newResults);
-    setHasValidationError(false);
-  };
-
-  // チェックONかつ値が全て入力されている行があるかチェック
-  const hasValidCheckedRow = (): boolean => {
-    const hasValidUpperRow = upperResults.some(row => {
-      if (!row.checked || row.isDisabled) {
-        return false;
-      }
-      const hasValidQuantity = row.consumptionQuantity !== undefined && row.consumptionQuantity > 0;
-      const hasValidBillingCategory = row.billingCategory && row.billingCategory !== '';
-      return hasValidQuantity && hasValidBillingCategory;
-    });
-
-    const hasValidLowerRow = lowerResults.some(row => {
-      if (!row.checked || row.isDisabled) {
-        return false;
-      }
-      const hasValidQuantity = row.consumptionQuantity !== undefined && row.consumptionQuantity > 0;
-      const hasValidBillingCategory = row.billingCategory && row.billingCategory !== '';
-      const hasValidPartsCategory = row.partsCategory && row.partsCategory !== '';
-      return hasValidQuantity && hasValidBillingCategory && hasValidPartsCategory;
-    });
-
-    return hasValidUpperRow || hasValidLowerRow;
-  };
-
-  // バリデーション処理
-  const validateRows = (rows: RegistrationRow[], isUpper: boolean): { isValid: boolean; errorCount: number; errors: ValidationError[] } => {
-    let hasError = false;
-    let errorCount = 0;
-    const validationErrors: ValidationError[] = [];
-    
-    const updatedRows = rows.map(row => {
-      if (row.checked && !row.isDisabled) {
-        const errors: string[] = [];
-        let rowHasError = false;
-        
-        // チェックありで値が0、または選択肢が「選択してください」の場合はエラー
-        const isQuantityZero = row.consumptionQuantity === undefined || row.consumptionQuantity === 0;
-        const isBillingCategoryEmpty = !row.billingCategory || row.billingCategory === '';
-        const isPartsCategoryEmpty = !isUpper && (!row.partsCategory || row.partsCategory === '');
-        
-        if (isQuantityZero) {
-          errors.push('消費数量が0です');
-          rowHasError = true;
-        }
-        if (isBillingCategoryEmpty) {
-          errors.push('請求区分が未選択です');
-          rowHasError = true;
-        }
-        if (isPartsCategoryEmpty) {
-          errors.push('パーツ区分が未選択です');
-          rowHasError = true;
-        }
-        
-        if (rowHasError) {
-          hasError = true;
-          errorCount++;
-          validationErrors.push({
-            partsNumber: row.partsNumber,
-            partsName: row.partsName,
-            errors: errors
-          });
-          return { 
-            ...row, 
-            hasError: true,
-            quantityError: isQuantityZero,
-            billingCategoryError: isBillingCategoryEmpty,
-            partsCategoryError: isPartsCategoryEmpty
-          };
-        }
-      }
-      return { 
-        ...row, 
-        hasError: false,
-        quantityError: false,
-        billingCategoryError: false,
-        partsCategoryError: false
-      };
-    });
-    
-    if (isUpper) {
-      setUpperResults(updatedRows);
-    } else {
-      setLowerResults(updatedRows);
-    }
-    
-    return { isValid: !hasError, errorCount, errors: validationErrors };
-  };
-  
-  // 最初のエラー行までスクロール
-  const scrollToFirstError = () => {
-    // 上部セクションのエラーをチェック
-    for (let i = 0; i < upperResults.length; i++) {
-      if (upperResults[i].hasError && upperErrorRefs.current[i]) {
-        upperErrorRefs.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-    }
-    // 下部セクションのエラーをチェック
-    for (let i = 0; i < lowerResults.length; i++) {
-      if (lowerResults[i].hasError && lowerErrorRefs.current[i]) {
-        lowerErrorRefs.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-    }
-  };
-
-  // 確定ボタンの処理
-  const handleConfirm = async () => {
-    setHasValidationError(false);
-    setToastMessage(null);
-    
-    // バリデーション
-    const upperValidation = validateRows(upperResults, true);
-    const lowerValidation = validateRows(lowerResults, false);
-    
-    if (!upperValidation.isValid || !lowerValidation.isValid) {
-      setHasValidationError(true);
-      const allErrors = [...upperValidation.errors, ...lowerValidation.errors];
-      const totalErrors = allErrors.length;
-      
-      // エラーメッセージを構築
-      let errorMessage = `${totalErrors}件のエラーがあります：\n\n`;
-      errorMessage += '【入力ルール】\n';
-      errorMessage += '・消費数量: 0~999 の数値を入力してください\n';
-      errorMessage += '・請求区分: 選択してください\n';
-      if (lowerValidation.errors.length > 0) {
-        errorMessage += '・パーツ区分: 選択してください\n';
-      }
-      errorMessage += '\n【エラー詳細】\n';
-      allErrors.forEach((error, index) => {
-        errorMessage += `${index + 1}. ${error.partsNumber} (${error.partsName})\n`;
-        error.errors.forEach(err => {
-          errorMessage += `   - ${err}\n`;
-        });
-        if (index < allErrors.length - 1) {
-          errorMessage += '\n';
-        }
-      });
-      
-      setToastMessage(errorMessage);
-      
-      // 少し遅延してからスクロール（トーストが表示された後）
-      setTimeout(() => {
-        scrollToFirstError();
-      }, 100);
-      
-      return;
-    }
-    
-    setIsConfirming(true);
-    try {
-      // シミュレート用の遅延
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // 確定後、チェックがONの行を非活性にする
-      const updatedUpperResults = upperResults.map(row => 
-        row.checked ? { ...row, checked: true, isDisabled: true, hasError: false } : row
-      );
-      const updatedLowerResults = lowerResults.map(row => 
-        row.checked ? { ...row, checked: true, isDisabled: true, hasError: false } : row
-      );
-      
-      setUpperResults(updatedUpperResults);
-      setLowerResults(updatedLowerResults);
-      
-      console.log('確定処理', { upperResults: updatedUpperResults, lowerResults: updatedLowerResults });
-      // TODO: 実際の確定処理を実装
-    } catch (error) {
-      console.error('確定処理エラー:', error);
-    } finally {
-      setIsConfirming(false);
-    }
-  };
 
   // タグのクリック処理（オンオフ）
   const handleTagClick = (type: 'bu' | 'customerSite' | 'orderSource') => {
@@ -452,35 +154,22 @@ export const PartsRegistration = () => {
 
   return (
     <div className={styles.container}>
-      {/* 上部セクション */}
+      {/* セクション */}
       <div className={styles.upperSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>パーツ実績登録（事前受注・FE手配・マイグレ）</h2>
           <div className={styles.headerRight}>
-            <Select
-              options={[
-                { value: '', label: '選択してください' },
-                { value: '事前受注', label: '事前受注' },
-                { value: 'FE手配', label: 'FE手配' },
-                { value: 'マイグレ', label: 'マイグレ' },
-              ]}
-              value={upperSelection}
-              onChange={(e) => setUpperSelection(e.target.value)}
-              style={{ minWidth: '150px' }}
-            />
-            <Button 
-              variant="default" 
-              onClick={handleConfirm} 
-              loading={isConfirming} 
-              disabled={isConfirming || !hasValidCheckedRow()}
+            <Button
+              variant="default"
+              onClick={handleOpenSearchModal}
             >
-              確定
+              パーツ検索
             </Button>
           </div>
         </div>
 
         <div className={styles.tagsContainer}>
-          <div 
+          <div
             className={`${styles.tag} ${upperBu ? styles.tagActive : ''}`}
             onClick={() => handleTagClick('bu')}
             role="button"
@@ -507,7 +196,7 @@ export const PartsRegistration = () => {
               </button>
             )}
           </div>
-          <div 
+          <div
             className={`${styles.tag} ${upperCustomerSite ? styles.tagActive : ''}`}
             onClick={() => handleTagClick('customerSite')}
             role="button"
@@ -534,7 +223,7 @@ export const PartsRegistration = () => {
               </button>
             )}
           </div>
-          <div 
+          <div
             className={`${styles.tag} ${upperOrderSource ? styles.tagActive : ''}`}
             onClick={() => handleTagClick('orderSource')}
             role="button"
@@ -572,8 +261,8 @@ export const PartsRegistration = () => {
                     <label className={styles.checkboxLabel}>
                       <input
                         type="checkbox"
-                        checked={upperResults.length > 0 && upperResults.every(item => item.checked || item.isDisabled)}
-                        onChange={handleUpperSelectAll}
+                        checked={results.length > 0 && results.every(item => item.checked || item.isDisabled)}
+                        onChange={handleSelectAll}
                         className={styles.checkboxInput}
                       />
                       <span className={styles.checkboxCustom}></span>
@@ -594,10 +283,9 @@ export const PartsRegistration = () => {
                 </tr>
               </thead>
               <tbody>
-                {upperResults.map((item, index) => (
-                  <tr 
+                {results.map((item, index) => (
+                  <tr
                     key={index}
-                    ref={(el) => { if (item.hasError) upperErrorRefs.current[index] = el; }}
                     className={`${item.hasError ? styles.hasError : ''} ${item.isDisabled ? styles.isDisabled : ''}`}
                   >
                     <td className={styles.checkboxColumn}>
@@ -605,7 +293,7 @@ export const PartsRegistration = () => {
                         <input
                           type="checkbox"
                           checked={item.checked}
-                          onChange={() => handleUpperCheckboxChange(index)}
+                          onChange={() => handleCheckboxChange(index)}
                           disabled={item.isDisabled}
                           className={styles.checkboxInput}
                         />
@@ -618,11 +306,11 @@ export const PartsRegistration = () => {
                         inputMode="numeric"
                         maxLength={3}
                         value={item.consumptionQuantity !== undefined ? item.consumptionQuantity : ''}
-                        onChange={(e) => handleUpperQuantityChange(index, e.target.value)}
+                        onChange={(e) => handleQuantityChange(index, e.target.value)}
                         onBlur={(e) => {
                           // フォーカスが外れた時、空の場合は0を表示
                           if (e.target.value === '') {
-                            handleUpperQuantityChange(index, '0');
+                            handleQuantityChange(index, '0');
                           }
                         }}
                         disabled={item.isDisabled}
@@ -650,7 +338,7 @@ export const PartsRegistration = () => {
                       <Select
                         options={billingCategoryOptions}
                         value={item.billingCategory || ''}
-                        onChange={(e) => handleUpperBillingCategoryChange(index, e.target.value)}
+                        onChange={(e) => handleBillingCategoryChange(index, e.target.value)}
                         disabled={item.isDisabled}
                         style={{ minWidth: '120px' }}
                       />
@@ -663,133 +351,303 @@ export const PartsRegistration = () => {
         </div>
       </div>
 
-      {/* 下部セクション */}
-      <div className={styles.lowerSection}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>パーツ実績登録（顧客提供・預託在庫）</h2>
-        </div>
+      {/* パーツ検索モーダル */}
+      <PartsSearchModal
+        isOpen={isSearchModalOpen}
+        onClose={handleCloseSearchModal}
+        onRegister={(selectedParts) => {
+          // 選択されたパーツを実績に追加
+          const newRows: RegistrationRow[] = selectedParts.map(part => ({
+            ...part,
+            checked: true,
+            consumptionQuantity: 0,
+            billingCategory: '',
+            hasError: false,
+            isDisabled: false,
+          }));
+          setResults([...results, ...newRows]);
+          // トースト通知を表示
+          setToastMessage(`${selectedParts.length}件のパーツが登録されました`);
+        }}
+        onCloseModal={handleCloseSearchModal}
+      />
 
-        <div className={styles.tableContainer}>
-          <div className={styles.tableWrapper}>
-            <table className={styles.resultsTable}>
-              <thead>
-                <tr>
-                  <th className={styles.checkboxColumn}>
-                    <label className={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={lowerResults.length > 0 && lowerResults.every(item => item.checked || item.isDisabled)}
-                        onChange={handleLowerSelectAll}
-                        className={styles.checkboxInput}
-                      />
-                      <span className={styles.checkboxCustom}></span>
-                    </label>
-                  </th>
-                  <th className={styles.quantityColumn}>消費数量</th>
-                  <th>BU</th>
-                  <th>パーツ番号</th>
-                  <th>パーツ名称／型式（英）</th>
-                  <th>ユニット</th>
-                  <th>シグナルコード</th>
-                  <th>販売ステータス</th>
-                  <th>インテルフラグ</th>
-                  <th>消耗品フラグ</th>
-                  <th>備考</th>
-                  <th>区分</th>
-                  <th className={styles.categoryColumn}>パーツ区分</th>
-                  <th className={styles.billingColumn}>請求区分</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lowerResults.map((item, index) => (
-                  <tr 
-                    key={index}
-                    ref={(el) => { if (item.hasError) lowerErrorRefs.current[index] = el; }}
-                    className={`${item.hasError ? styles.hasError : ''} ${item.isDisabled ? styles.isDisabled : ''}`}
-                  >
-                    <td className={styles.checkboxColumn}>
-                      <label className={styles.checkboxLabel}>
-                        <input
-                          type="checkbox"
-                          checked={item.checked}
-                          onChange={() => handleLowerCheckboxChange(index)}
-                          disabled={item.isDisabled}
-                          className={styles.checkboxInput}
-                        />
-                        <span className={styles.checkboxCustom}></span>
-                      </label>
-                    </td>
-                    <td className={styles.quantityColumn}>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={3}
-                        value={item.consumptionQuantity !== undefined ? item.consumptionQuantity : ''}
-                        onChange={(e) => handleLowerQuantityChange(index, e.target.value)}
-                        onBlur={(e) => {
-                          // フォーカスが外れた時、空の場合は0を表示
-                          if (e.target.value === '') {
-                            handleLowerQuantityChange(index, '0');
-                          }
-                        }}
-                        disabled={item.isDisabled}
-                        className={`${styles.quantityInput} ${item.quantityError && !item.isDisabled ? styles.inputError : ''}`}
-                      />
-                    </td>
-                    <td>{item.bu}</td>
-                    <td>
-                      <button
-                        className={styles.partsNumberLink}
-                        onClick={() => handlePartsNumberClick(item.partsNumber)}
-                      >
-                        {item.partsNumber}
-                      </button>
-                    </td>
-                    <td>{item.partsName}</td>
-                    <td>{item.unit}</td>
-                    <td>{item.signalCode}</td>
-                    <td>{item.salesStatus}</td>
-                    <td>{item.intelFlag}</td>
-                    <td>{item.consumableFlag}</td>
-                    <td>{item.remarks}</td>
-                    <td>{item.category}</td>
-                    <td className={styles.categoryColumn}>
-                      <Select
-                        options={partsCategoryOptions}
-                        value={item.partsCategory || ''}
-                        onChange={(e) => handleLowerPartsCategoryChange(index, e.target.value)}
-                        disabled={item.isDisabled}
-                        style={{ minWidth: '120px' }}
-                      />
-                    </td>
-                    <td className={styles.billingColumn}>
-                      <Select
-                        options={billingCategoryOptions}
-                        value={item.billingCategory || ''}
-                        onChange={(e) => handleLowerBillingCategoryChange(index, e.target.value)}
-                        disabled={item.isDisabled}
-                        style={{ minWidth: '120px' }}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      
       {/* トースト通知 */}
       {toastMessage && (
         <Toast
           message={toastMessage}
-          type="error"
+          type="success"
           duration={5000}
           onClose={() => setToastMessage(null)}
           position="top-center"
         />
       )}
     </div>
+  );
+};
+
+// パーツ検索モーダル
+interface PartsSearchModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onRegister: (selectedParts: PartsSearchResult[]) => void;
+  onCloseModal: () => void; // モーダルを閉じる関数を追加
+}
+
+const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSearchModalProps) => {
+  const [bu, setBu] = useState<string>('');
+  const [partsNumber, setPartsNumber] = useState<string>('');
+  const [partsName, setPartsName] = useState<string>('');
+  const [results, setResults] = useState<PartsSearchResult[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [selectedParts, setSelectedParts] = useState<Set<string>>(new Set());
+  const [isRegistering, setIsRegistering] = useState<boolean>(false);
+
+  // モーダルが閉じられたときに検索結果をリセット
+  useEffect(() => {
+    if (!isOpen) {
+      setHasSearched(false);
+      setResults([]);
+      setSelectedParts(new Set());
+      setBu('');
+      setPartsNumber('');
+      setPartsName('');
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  const handleSearch = async () => {
+    setLoading(true);
+    setHasSearched(true);
+    try {
+      const searchResults = await searchParts({
+        bu: bu || undefined,
+        partsNumber: partsNumber || undefined,
+        partsName: partsName || undefined,
+      });
+      setResults(searchResults);
+    } catch (error) {
+      console.error('検索エラー:', error);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setHasSearched(false);
+    setResults([]);
+    setSelectedParts(new Set());
+    setBu('');
+    setPartsNumber('');
+    setPartsName('');
+    setLoading(false);
+  };
+
+  const handleCheckboxChange = (partsNumber: string) => {
+    const newSelected = new Set(selectedParts);
+    if (newSelected.has(partsNumber)) {
+      newSelected.delete(partsNumber);
+    } else {
+      newSelected.add(partsNumber);
+    }
+    setSelectedParts(newSelected);
+  };
+
+  const handlePartsNumberClick = (partsNumber: string) => {
+    // 常に別タブでパーツ詳細画面を開く
+    const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
+    window.open(detailUrl, '_blank');
+  };
+
+  const handleRegister = async () => {
+    setIsRegistering(true);
+    try {
+      // シミュレート用の遅延
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const selectedPartsList = results.filter(r => selectedParts.has(r.partsNumber));
+      onRegister(selectedPartsList);
+
+      // ローディング状態を解除
+      setIsRegistering(false);
+
+      // モーダルを閉じる前にリセット
+      handleReset();
+
+      // ローディングが終わったらモーダルを閉じる（PartsRequestModalと同じ方法）
+      onCloseModal();
+    } catch (error) {
+      console.error('登録エラー:', error);
+      setIsRegistering(false);
+    }
+  };
+
+  const handleCancel = () => {
+    onClose();
+  };
+
+  const footer = (
+    <div className={styles.modalFooter}>
+      <Button variant="sub" onClick={handleCancel}>
+        キャンセル
+      </Button>
+      <Button
+        variant="default"
+        onClick={handleRegister}
+        disabled={selectedParts.size === 0 || isRegistering}
+        loading={isRegistering}
+      >
+        登録
+      </Button>
+    </div>
+  );
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="パーツ検索"
+      footer={footer}
+      size="large"
+    >
+      <div className={styles.searchModalContent}>
+        <div className={styles.searchForm}>
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Select
+                label="BU"
+                options={buOptions as SelectOption[]}
+                value={bu}
+                onChange={(e) => setBu(e.target.value)}
+                placeholder="選択してください"
+              />
+            </div>
+            <div className={styles.formField}>
+              <Input
+                label="パーツ番号"
+                value={partsNumber}
+                onChange={(e) => setPartsNumber(e.target.value)}
+                placeholder="パーツ番号を入力"
+              />
+            </div>
+            <div className={styles.formField}>
+              <Input
+                label="パーツ名称／型式（英）"
+                value={partsName}
+                onChange={(e) => setPartsName(e.target.value)}
+                placeholder="パーツ名称を入力"
+              />
+            </div>
+            <div className={styles.buttonRow}>
+              <Button variant="default" onClick={handleSearch} disabled={loading}>
+                検索
+              </Button>
+              <Button variant="sub" onClick={handleReset} disabled={loading}>
+                リセット
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.resultsContainer}>
+          {loading ? (
+            <div className={styles.loadingContainer}>
+              <Spinner size="large" variant="primary" label="検索中..." />
+            </div>
+          ) : hasSearched ? (
+            <>
+              <div className={styles.resultsHeader}>
+                <p className={styles.resultsCount}>
+                  検索結果: {results.length}件
+                </p>
+              </div>
+              {results.length > 0 ? (
+                <div className={styles.tableWrapper}>
+                  <table className={styles.resultsTable}>
+                    <thead>
+                      <tr>
+                        <th>
+                          <label className={styles.checkboxLabel}>
+                            <input
+                              type="checkbox"
+                              className={styles.checkbox}
+                              checked={selectedParts.size > 0 && selectedParts.size === results.length}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedParts(new Set(results.map(r => r.partsNumber)));
+                                } else {
+                                  setSelectedParts(new Set());
+                                }
+                              }}
+                            />
+                            <span className={styles.checkmark}></span>
+                          </label>
+                        </th>
+                        <th>BU</th>
+                        <th>パーツ番号</th>
+                        <th>パーツ名称／型式（英）</th>
+                        <th>ユニット</th>
+                        <th>シグナルコード</th>
+                        <th>販売ステータス</th>
+                        <th>インテルフラグ</th>
+                        <th>消耗品フラグ</th>
+                        <th>備考</th>
+                        <th>区分</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.map((item, index) => (
+                        <tr key={index}>
+                          <td>
+                            <label className={styles.checkboxLabel}>
+                              <input
+                                type="checkbox"
+                                className={styles.checkbox}
+                                checked={selectedParts.has(item.partsNumber)}
+                                onChange={() => handleCheckboxChange(item.partsNumber)}
+                              />
+                              <span className={styles.checkmark}></span>
+                            </label>
+                          </td>
+                          <td>{item.bu}</td>
+                          <td>
+                            <button
+                              className={styles.partsNumberLink}
+                              onClick={() => handlePartsNumberClick(item.partsNumber)}
+                            >
+                              {item.partsNumber}
+                            </button>
+                          </td>
+                          <td>{item.partsName}</td>
+                          <td>{item.unit}</td>
+                          <td>{item.signalCode}</td>
+                          <td>{item.salesStatus}</td>
+                          <td>{item.intelFlag}</td>
+                          <td>{item.consumableFlag}</td>
+                          <td>{item.remarks}</td>
+                          <td>{item.category}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className={styles.noResults}>
+                  <p>検索結果がありません</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className={styles.noResults}>
+              <p>検索条件を入力して検索してください</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </Modal>
   );
 };
 

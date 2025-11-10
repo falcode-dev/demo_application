@@ -182,14 +182,16 @@
 @media (max-width: 767px) {
   .overlay {
     padding: var(--spacing-md);
+    align-items: center;
+    justify-content: center;
   }
 
   .modal {
     max-width: calc(100vw - 2rem);
     width: calc(100vw - 2rem);
     max-height: 95vh;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    margin-top: auto;
+    border-radius: var(--radius-lg);
+    margin-top: 0;
   }
 
   .header {
