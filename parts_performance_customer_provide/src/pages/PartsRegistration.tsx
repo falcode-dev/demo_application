@@ -175,10 +175,12 @@ export const PartsRegistration = () => {
                       <span className={styles.checkboxCustom}></span>
                     </label>
                   </th>
-                  <th className={styles.quantityColumn}>消費数量</th>
                   <th>BU</th>
                   <th>パーツ番号</th>
                   <th>パーツ名称／型式（英）</th>
+                  <th className={styles.quantityColumn}>消費数量</th>
+                  <th className={styles.categoryColumn}>パーツ区分</th>
+                  <th className={styles.billingColumn}>請求区分</th>
                   <th>ユニット</th>
                   <th>シグナルコード</th>
                   <th>販売ステータス</th>
@@ -186,8 +188,6 @@ export const PartsRegistration = () => {
                   <th>消耗品フラグ</th>
                   <th>備考</th>
                   <th>区分</th>
-                  <th className={styles.categoryColumn}>パーツ区分</th>
-                  <th className={styles.billingColumn}>請求区分</th>
                 </tr>
               </thead>
               <tbody>
@@ -208,6 +208,16 @@ export const PartsRegistration = () => {
                         <span className={styles.checkboxCustom}></span>
                       </label>
                     </td>
+                    <td>{item.bu}</td>
+                    <td>
+                      <button
+                        className={styles.partsNumberLink}
+                        onClick={() => handlePartsNumberClick(item.partsNumber)}
+                      >
+                        {item.partsNumber}
+                      </button>
+                    </td>
+                    <td>{item.partsName}</td>
                     <td className={styles.quantityColumn}>
                       <input
                         type="text"
@@ -225,23 +235,6 @@ export const PartsRegistration = () => {
                         className={`${styles.quantityInput} ${item.quantityError && !item.isDisabled ? styles.inputError : ''}`}
                       />
                     </td>
-                    <td>{item.bu}</td>
-                    <td>
-                      <button
-                        className={styles.partsNumberLink}
-                        onClick={() => handlePartsNumberClick(item.partsNumber)}
-                      >
-                        {item.partsNumber}
-                      </button>
-                    </td>
-                    <td>{item.partsName}</td>
-                    <td>{item.unit}</td>
-                    <td>{item.signalCode}</td>
-                    <td>{item.salesStatus}</td>
-                    <td>{item.intelFlag}</td>
-                    <td>{item.consumableFlag}</td>
-                    <td>{item.remarks}</td>
-                    <td>{item.category}</td>
                     <td className={styles.categoryColumn}>
                       <Select
                         options={partsCategoryOptions}
@@ -260,6 +253,13 @@ export const PartsRegistration = () => {
                         style={{ minWidth: '120px' }}
                       />
                     </td>
+                    <td>{item.unit}</td>
+                    <td>{item.signalCode}</td>
+                    <td>{item.salesStatus}</td>
+                    <td>{item.intelFlag}</td>
+                    <td>{item.consumableFlag}</td>
+                    <td>{item.remarks}</td>
+                    <td>{item.category}</td>
                   </tr>
                 ))}
               </tbody>
