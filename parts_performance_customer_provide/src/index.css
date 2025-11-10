@@ -1,0 +1,111 @@
+@import 'ress';
+
+:root {
+  /* メインカラー */
+  --color-primary: #0066ff;
+  --color-primary-hover: #0052cc;
+  --color-primary-active: #003d99;
+  --color-main: var(--color-primary);
+  --color-main-hover: var(--color-primary-hover);
+  --color-main-active: var(--color-primary-active);
+
+  /* サブカラー */
+  --color-sub: #666;
+  --color-sub-hover: #555;
+  --color-sub-active: #444;
+
+  /* アクセントカラー */
+  --color-accent: #00c853;
+  --color-accent-hover: #00a043;
+  --color-accent-active: #008033;
+
+  /* エラーカラー */
+  --color-error: #ff3333;
+  --color-error-hover: #cc0000;
+  --color-error-active: #990000;
+
+  /* テキストカラー */
+  --color-text: #1a1a1a;
+  --color-text-primary: #000;
+  --color-text-secondary: #666;
+  --color-text-light: #999;
+  --color-text-inverse: #fff;
+  --color-text-disabled: #ccc;
+
+  /* 背景カラー */
+  --color-bg: #fff;
+  --color-bg-primary: #fff;
+  --color-bg-secondary: #fafafa;
+  --color-bg-tertiary: #f5f5f5;
+  --color-bg-hover: #f0f0f0;
+
+  /* ボーダーカラー */
+  --color-border: #e0e0e0;
+  --color-border-light: #f0f0f0;
+  --color-border-focus: var(--color-primary);
+  --color-border-error: var(--color-error);
+
+  /* フォント */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', Meiryo, sans-serif;
+
+  /* フォントサイズ */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+
+  /* フォントウェイト */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* スペーシング */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* ボーダー半径 */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* トランジション */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* シャドウ */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.12);
+  --shadow-focus: 0 0 0 3px rgba(0, 102, 255, 0.15);
+  --shadow-focus-error: 0 0 0 3px rgba(255, 51, 51, 0.15);
+
+  /* その他 */
+  --line-height: 1.6;
+  --line-height-tight: 1.4;
+  --line-height-relaxed: 1.8;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}

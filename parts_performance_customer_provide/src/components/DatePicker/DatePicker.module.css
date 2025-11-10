@@ -1,0 +1,400 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+}
+
+.inputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+  outline: none;
+  cursor: pointer;
+}
+
+/* アイコンがある場合のデフォルトパディング調整（sizeが指定されていない場合） */
+.input.hasLeftIcon:not(.size-small):not(.size-medium):not(.size-large) {
+  padding-left: 2.5rem !important;
+}
+
+.input.hasRightIcon:not(.size-small):not(.size-medium):not(.size-large) {
+  padding-right: 2.5rem !important;
+}
+
+.input::placeholder {
+  color: var(--color-text-disabled);
+}
+
+.input:disabled {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+.input:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.input.focused {
+  border-color: var(--color-border-focus);
+}
+
+.input.error {
+  border-color: var(--color-border-error);
+}
+
+.input.error:focus {
+  border-color: var(--color-border-error);
+  box-shadow: var(--shadow-focus-error);
+}
+
+/* サイズ */
+.size-small {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  font-size: 0.875rem;
+  min-height: 2rem;
+}
+
+.size-small.hasLeftIcon {
+  padding-left: 2.25rem !important;
+}
+
+.size-small.hasRightIcon {
+  padding-right: 2.25rem !important;
+}
+
+.size-medium {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  font-size: 1rem;
+  min-height: 2.5rem;
+}
+
+.size-medium.hasLeftIcon {
+  padding-left: 2.5rem !important;
+}
+
+.size-medium.hasRightIcon {
+  padding-right: 2.5rem !important;
+}
+
+.size-large {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  font-size: 1.125rem;
+  min-height: 3rem;
+}
+
+.size-large.hasLeftIcon {
+  padding-left: 3rem !important;
+}
+
+.size-large.hasRightIcon {
+  padding-right: 3rem !important;
+}
+
+/* アイコン */
+.leftIcon,
+.rightIcon {
+  position: absolute;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.leftIcon {
+  left: var(--spacing-md);
+}
+
+.rightIcon {
+  right: var(--spacing-md);
+}
+
+.size-small .leftIcon,
+.size-small .rightIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.size-small .leftIcon {
+  left: 0.625rem;
+}
+
+.size-small .rightIcon {
+  right: 0.625rem;
+}
+
+.size-medium .leftIcon,
+.size-medium .rightIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.size-large .leftIcon,
+.size-large .rightIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.input:focus ~ .rightIcon,
+.input.focused ~ .rightIcon {
+  color: var(--color-main);
+}
+
+.input.error ~ .rightIcon {
+  color: var(--color-error);
+}
+
+.input:disabled ~ .leftIcon,
+.input:disabled ~ .rightIcon {
+  color: var(--color-text-disabled);
+}
+
+/* ヘルパーテキスト */
+.helperText {
+  font-size: var(--font-size-xs);
+  min-height: 1rem;
+  font-family: var(--font-family);
+}
+
+.helpText {
+  color: var(--color-text-secondary);
+}
+
+.errorText {
+  color: var(--color-error);
+}
+
+/* react-datepicker カスタマイズ */
+.datePickerWrapper {
+  width: 100%;
+  position: relative;
+}
+
+.popper {
+  z-index: 1000;
+}
+
+/* カレンダーコンテナ */
+:global(.react-datepicker) {
+  font-family: var(--font-family) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  background-color: var(--color-bg-primary) !important;
+}
+
+/* ポッパーの基本スタイル */
+:global(.react-datepicker-popper) {
+  z-index: 1000 !important;
+}
+
+/* 月コンテナを最上位に */
+:global(.react-datepicker__month-container) {
+  position: relative !important;
+  z-index: 1001 !important;
+}
+
+/* カレンダーヘッダー */
+:global(.react-datepicker__header) {
+  background-color: var(--color-bg-primary) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+  padding-top: var(--spacing-md) !important;
+}
+
+/* 現在の月/年表示 */
+:global(.react-datepicker__current-month) {
+  font-size: var(--font-size-base) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  color: var(--color-text-primary) !important;
+  margin-bottom: var(--spacing-md) !important;
+}
+
+/* ナビゲーションボタン */
+:global(.react-datepicker__navigation) {
+  top: var(--spacing-md) !important;
+}
+
+:global(.react-datepicker__navigation-icon::before) {
+  border-color: var(--color-text-secondary) !important;
+}
+
+:global(.react-datepicker__navigation:hover *::before) {
+  border-color: var(--color-main) !important;
+}
+
+/* 曜日ヘッダー */
+:global(.react-datepicker__day-names) {
+  margin-bottom: var(--spacing-xs) !important;
+}
+
+:global(.react-datepicker__day-name) {
+  color: var(--color-text-secondary) !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-medium) !important;
+  width: 2.5rem !important;
+  line-height: 2.5rem !important;
+  margin: 0.125rem !important;
+}
+
+/* 日付セル */
+:global(.react-datepicker__day) {
+  color: var(--color-text-primary) !important;
+  font-size: var(--font-size-sm) !important;
+  width: 2.5rem !important;
+  line-height: 2.5rem !important;
+  margin: 0.125rem !important;
+  border-radius: var(--radius-sm) !important;
+  transition: all var(--transition-base) !important;
+}
+
+:global(.react-datepicker__day:hover) {
+  background-color: var(--color-bg-hover) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+:global(.react-datepicker__day--selected) {
+  background-color: var(--color-main) !important;
+  color: var(--color-text-inverse) !important;
+  font-weight: var(--font-weight-medium) !important;
+}
+
+:global(.react-datepicker__day--selected:hover) {
+  background-color: var(--color-main-hover) !important;
+}
+
+:global(.react-datepicker__day--keyboard-selected) {
+  background-color: var(--color-bg-hover) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(.react-datepicker__day--today) {
+  font-weight: var(--font-weight-semibold) !important;
+  color: var(--color-main) !important;
+}
+
+:global(.react-datepicker__day--disabled) {
+  color: var(--color-text-disabled) !important;
+  cursor: not-allowed !important;
+}
+
+:global(.react-datepicker__day--disabled:hover) {
+  background-color: transparent !important;
+}
+
+/* 範囲選択 */
+:global(.react-datepicker__day--in-range) {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  color: var(--color-text-primary) !important;
+}
+
+:global(.react-datepicker__day--in-selecting-range) {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+:global(.react-datepicker__day--range-start),
+:global(.react-datepicker__day--range-end) {
+  background-color: var(--color-main) !important;
+  color: var(--color-text-inverse) !important;
+}
+
+/* ハイライトされた日付 */
+:global(.react-datepicker__day--highlighted) {
+  background-color: var(--color-accent) !important;
+  color: var(--color-text-inverse) !important;
+}
+
+:global(.react-datepicker__day--highlighted:hover) {
+  background-color: var(--color-accent-hover) !important;
+}
+
+/* 月選択モード */
+:global(.react-datepicker__month-text) {
+  color: var(--color-text-primary) !important;
+  font-size: var(--font-size-sm) !important;
+  width: 5rem !important;
+  line-height: 3rem !important;
+  margin: 0.25rem !important;
+  border-radius: var(--radius-sm) !important;
+  transition: all var(--transition-base) !important;
+}
+
+:global(.react-datepicker__month-text:hover) {
+  background-color: var(--color-bg-hover) !important;
+}
+
+:global(.react-datepicker__month-text--selected) {
+  background-color: var(--color-main) !important;
+  color: var(--color-text-inverse) !important;
+}
+
+/* 年選択モード */
+:global(.react-datepicker__year-text) {
+  color: var(--color-text-primary) !important;
+  font-size: var(--font-size-sm) !important;
+  width: 5rem !important;
+  line-height: 3rem !important;
+  margin: 0.25rem !important;
+  border-radius: var(--radius-sm) !important;
+  transition: all var(--transition-base) !important;
+}
+
+:global(.react-datepicker__year-text:hover) {
+  background-color: var(--color-bg-hover) !important;
+}
+
+:global(.react-datepicker__year-text--selected) {
+  background-color: var(--color-main) !important;
+  color: var(--color-text-inverse) !important;
+}
+
+/* インライン表示 */
+:global(.react-datepicker--inline) {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* カスタムクラス */
+.day {
+  /* 日付セルのベーススタイル */
+}
+
+.day.selected {
+  /* 選択された日付のスタイル */
+}
+
+.calendar {
+  /* カレンダーの追加スタイル */
+}
+
