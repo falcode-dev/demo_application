@@ -52,8 +52,20 @@ export const Modal = ({
     if (isOpen) {
       setShouldRender(true);
       setIsClosing(false);
+    } else if (!isOpen && shouldRender) {
+      // モーダルが閉じられた時は閉じるアニメーションを開始
+      setIsClosing(true);
+      timeoutRef.current = setTimeout(() => {
+        setShouldRender(false);
+        setIsClosing(false);
+      }, 300); // アニメーション時間に合わせる
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      };
     }
-  }, [isOpen]);
+  }, [isOpen, shouldRender]);
 
   // 閉じるアニメーション
   const handleClose = useCallback(() => {

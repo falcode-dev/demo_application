@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import { Button, Select, Toast } from '../components';
+import { useState } from 'react';
+import { Button, Select, Toast, Modal, Input } from '../components';
 import type { SelectOption } from '../components';
-import { searchParts, buOptions, type PartsSearchResult } from '../services/mockData';
-import { FiX } from 'react-icons/fi';
+import type { PartsSearchResult } from '../services/mockData';
 import styles from './PartsRegistration.module.css';
 
 // パーツ番号をクリックした時の処理
@@ -27,58 +26,26 @@ interface RegistrationRow extends PartsSearchResult {
   partsCategoryError?: boolean;
 }
 
-interface ValidationError {
-  partsNumber: string;
-  partsName: string;
-  errors: string[];
-}
-
 export const PartsRegistration = () => {
-  // 上部セクションの状態
-  const [upperSelection, setUpperSelection] = useState<string>('');
-  const [upperBu, setUpperBu] = useState<string>('');
-  const [upperCustomerSite, setUpperCustomerSite] = useState<string>('');
-  const [upperOrderSource, setUpperOrderSource] = useState<string>('');
-  const [upperResults, setUpperResults] = useState<RegistrationRow[]>([]);
+  // セクションの状態
+  const [results, setResults] = useState<RegistrationRow[]>([]);
 
-  // 下部セクションの状態
-  const [lowerResults, setLowerResults] = useState<RegistrationRow[]>([]);
+  // パーツリクエスト登録モーダルの状態
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
+  const [isRegistering, setIsRegistering] = useState<boolean>(false);
 
-  // 確定処理のローディング状態
-  const [isConfirming, setIsConfirming] = useState<boolean>(false);
-  
-  // エラー状態（未使用だが、将来的に使用する可能性があるため保持）
-  const [, setHasValidationError] = useState<boolean>(false);
-  
   // トースト通知の状態
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  
-  // エラー行への参照
-  const upperErrorRefs = useRef<{ [key: number]: HTMLTableRowElement | null }>({});
-  const lowerErrorRefs = useRef<{ [key: number]: HTMLTableRowElement | null }>({});
 
-  // モックデータの読み込み（初期表示用）
-  useEffect(() => {
-    const loadInitialData = async () => {
-      const searchResults = await searchParts({});
-      const upperData: RegistrationRow[] = searchResults.map(item => ({
-        ...item,
-        checked: false,
-        consumptionQuantity: undefined,
-        billingCategory: '',
-      }));
-      const lowerData: RegistrationRow[] = searchResults.map(item => ({
-        ...item,
-        checked: false,
-        consumptionQuantity: undefined,
-        billingCategory: '',
-        partsCategory: '',
-      }));
-      setUpperResults(upperData);
-      setLowerResults(lowerData);
-    };
-    loadInitialData();
-  }, []);
+  // パーツリクエスト登録モーダルを開く
+  const handleOpenRequestModal = () => {
+    setIsRequestModalOpen(true);
+  };
+
+  // パーツリクエスト登録モーダルを閉じる
+  const handleCloseRequestModal = () => {
+    setIsRequestModalOpen(false);
+  };
 
   // 請求区分の選択肢
   const billingCategoryOptions: SelectOption[] = [
@@ -95,10 +62,10 @@ export const PartsRegistration = () => {
     { value: '預託在庫', label: '預託在庫' },
   ];
 
-  // 上部セクションの全件チェック/解除
-  const handleUpperSelectAll = () => {
-    const allChecked = upperResults.every(item => item.checked || item.isDisabled);
-    const newResults = upperResults.map(item => {
+  // 全件チェック/解除
+  const handleSelectAll = () => {
+    const allChecked = results.every(item => item.checked || item.isDisabled);
+    const newResults = results.map(item => {
       if (item.isDisabled) {
         return item; // 非活性の行は変更しない
       }
@@ -108,30 +75,28 @@ export const PartsRegistration = () => {
         hasError: false, // チェックを変更したらエラーをクリア
       };
     });
-    setUpperResults(newResults);
-    setHasValidationError(false);
+    setResults(newResults);
   };
 
-  // 上部セクションのチェックボックス変更
-  const handleUpperCheckboxChange = (index: number) => {
-    const newResults = [...upperResults];
+  // チェックボックス変更
+  const handleCheckboxChange = (index: number) => {
+    const newResults = [...results];
     if (newResults[index].isDisabled) {
       return; // 非活性の行は変更不可
     }
     newResults[index].checked = !newResults[index].checked;
     newResults[index].hasError = false; // チェックを変更したらエラーをクリア
-    setUpperResults(newResults);
-    setHasValidationError(false);
+    setResults(newResults);
   };
 
-  // 上部セクションの消費数量変更
-  const handleUpperQuantityChange = (index: number, value: string) => {
-    if (upperResults[index].isDisabled) {
+  // 消費数量変更
+  const handleQuantityChange = (index: number, value: string) => {
+    if (results[index].isDisabled) {
       return; // 非活性の行は変更不可
     }
     // 数値のみ許可し、3桁まで制限
     const numericValue = value.replace(/[^0-9]/g, '').slice(0, 3);
-    const newResults = [...upperResults];
+    const newResults = [...results];
     if (numericValue === '') {
       // 空の場合は0に設定
       newResults[index].consumptionQuantity = 0;
@@ -144,425 +109,56 @@ export const PartsRegistration = () => {
       }
     }
     newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setUpperResults(newResults);
-    setHasValidationError(false);
+    setResults(newResults);
   };
 
-  // 上部セクションの請求区分変更
-  const handleUpperBillingCategoryChange = (index: number, value: string) => {
-    if (upperResults[index].isDisabled) {
+  // パーツ区分変更
+  const handlePartsCategoryChange = (index: number, value: string) => {
+    if (results[index].isDisabled) {
       return; // 非活性の行は変更不可
     }
-    const newResults = [...upperResults];
-    newResults[index].billingCategory = value;
-    // 選択肢を選んだらチェックボックスをオンにする
-    if (value !== '') {
-      newResults[index].checked = true;
-    }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setUpperResults(newResults);
-    setHasValidationError(false);
-  };
-
-  // 下部セクションの全件チェック/解除
-  const handleLowerSelectAll = () => {
-    const allChecked = lowerResults.every(item => item.checked || item.isDisabled);
-    const newResults = lowerResults.map(item => {
-      if (item.isDisabled) {
-        return item; // 非活性の行は変更しない
-      }
-      return {
-        ...item,
-        checked: !allChecked,
-        hasError: false, // チェックを変更したらエラーをクリア
-      };
-    });
-    setLowerResults(newResults);
-    setHasValidationError(false);
-  };
-
-  // 下部セクションのチェックボックス変更
-  const handleLowerCheckboxChange = (index: number) => {
-    const newResults = [...lowerResults];
-    if (newResults[index].isDisabled) {
-      return; // 非活性の行は変更不可
-    }
-    newResults[index].checked = !newResults[index].checked;
-    newResults[index].hasError = false; // チェックを変更したらエラーをクリア
-    setLowerResults(newResults);
-    setHasValidationError(false);
-  };
-
-  // 下部セクションの消費数量変更
-  const handleLowerQuantityChange = (index: number, value: string) => {
-    if (lowerResults[index].isDisabled) {
-      return; // 非活性の行は変更不可
-    }
-    // 数値のみ許可し、3桁まで制限
-    const numericValue = value.replace(/[^0-9]/g, '').slice(0, 3);
-    const newResults = [...lowerResults];
-    if (numericValue === '') {
-      // 空の場合は0に設定
-      newResults[index].consumptionQuantity = 0;
-    } else {
-      const numValue = parseInt(numericValue, 10);
-      if (!isNaN(numValue) && numValue >= 0 && numValue <= 999) {
-        newResults[index].consumptionQuantity = numValue;
-        // 数値を入力したらチェックボックスをオンにする
-        newResults[index].checked = true;
-      }
-    }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setLowerResults(newResults);
-    setHasValidationError(false);
-  };
-
-  // 下部セクションのパーツ区分変更
-  const handleLowerPartsCategoryChange = (index: number, value: string) => {
-    if (lowerResults[index].isDisabled) {
-      return; // 非活性の行は変更不可
-    }
-    const newResults = [...lowerResults];
+    const newResults = [...results];
     newResults[index].partsCategory = value;
     // 選択肢を選んだらチェックボックスをオンにする
     if (value !== '') {
       newResults[index].checked = true;
     }
     newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setLowerResults(newResults);
-    setHasValidationError(false);
+    setResults(newResults);
   };
 
-  // 下部セクションの請求区分変更
-  const handleLowerBillingCategoryChange = (index: number, value: string) => {
-    if (lowerResults[index].isDisabled) {
+  // 請求区分変更
+  const handleBillingCategoryChange = (index: number, value: string) => {
+    if (results[index].isDisabled) {
       return; // 非活性の行は変更不可
     }
-    const newResults = [...lowerResults];
+    const newResults = [...results];
     newResults[index].billingCategory = value;
     // 選択肢を選んだらチェックボックスをオンにする
     if (value !== '') {
       newResults[index].checked = true;
     }
     newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setLowerResults(newResults);
-    setHasValidationError(false);
+    setResults(newResults);
   };
 
-  // チェックONかつ値が全て入力されている行があるかチェック
-  const hasValidCheckedRow = (): boolean => {
-    const hasValidUpperRow = upperResults.some(row => {
-      if (!row.checked || row.isDisabled) {
-        return false;
-      }
-      const hasValidQuantity = row.consumptionQuantity !== undefined && row.consumptionQuantity > 0;
-      const hasValidBillingCategory = row.billingCategory && row.billingCategory !== '';
-      return hasValidQuantity && hasValidBillingCategory;
-    });
-
-    const hasValidLowerRow = lowerResults.some(row => {
-      if (!row.checked || row.isDisabled) {
-        return false;
-      }
-      const hasValidQuantity = row.consumptionQuantity !== undefined && row.consumptionQuantity > 0;
-      const hasValidBillingCategory = row.billingCategory && row.billingCategory !== '';
-      const hasValidPartsCategory = row.partsCategory && row.partsCategory !== '';
-      return hasValidQuantity && hasValidBillingCategory && hasValidPartsCategory;
-    });
-
-    return hasValidUpperRow || hasValidLowerRow;
-  };
-
-  // バリデーション処理
-  const validateRows = (rows: RegistrationRow[], isUpper: boolean): { isValid: boolean; errorCount: number; errors: ValidationError[] } => {
-    let hasError = false;
-    let errorCount = 0;
-    const validationErrors: ValidationError[] = [];
-    
-    const updatedRows = rows.map(row => {
-      if (row.checked && !row.isDisabled) {
-        const errors: string[] = [];
-        let rowHasError = false;
-        
-        // チェックありで値が0、または選択肢が「選択してください」の場合はエラー
-        const isQuantityZero = row.consumptionQuantity === undefined || row.consumptionQuantity === 0;
-        const isBillingCategoryEmpty = !row.billingCategory || row.billingCategory === '';
-        const isPartsCategoryEmpty = !isUpper && (!row.partsCategory || row.partsCategory === '');
-        
-        if (isQuantityZero) {
-          errors.push('消費数量が0です');
-          rowHasError = true;
-        }
-        if (isBillingCategoryEmpty) {
-          errors.push('請求区分が未選択です');
-          rowHasError = true;
-        }
-        if (isPartsCategoryEmpty) {
-          errors.push('パーツ区分が未選択です');
-          rowHasError = true;
-        }
-        
-        if (rowHasError) {
-          hasError = true;
-          errorCount++;
-          validationErrors.push({
-            partsNumber: row.partsNumber,
-            partsName: row.partsName,
-            errors: errors
-          });
-          return { 
-            ...row, 
-            hasError: true,
-            quantityError: isQuantityZero,
-            billingCategoryError: isBillingCategoryEmpty,
-            partsCategoryError: isPartsCategoryEmpty
-          };
-        }
-      }
-      return { 
-        ...row, 
-        hasError: false,
-        quantityError: false,
-        billingCategoryError: false,
-        partsCategoryError: false
-      };
-    });
-    
-    if (isUpper) {
-      setUpperResults(updatedRows);
-    } else {
-      setLowerResults(updatedRows);
-    }
-    
-    return { isValid: !hasError, errorCount, errors: validationErrors };
-  };
-  
-  // 最初のエラー行までスクロール
-  const scrollToFirstError = () => {
-    // 上部セクションのエラーをチェック
-    for (let i = 0; i < upperResults.length; i++) {
-      if (upperResults[i].hasError && upperErrorRefs.current[i]) {
-        upperErrorRefs.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-    }
-    // 下部セクションのエラーをチェック
-    for (let i = 0; i < lowerResults.length; i++) {
-      if (lowerResults[i].hasError && lowerErrorRefs.current[i]) {
-        lowerErrorRefs.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-    }
-  };
-
-  // 確定ボタンの処理
-  const handleConfirm = async () => {
-    setHasValidationError(false);
-    setToastMessage(null);
-    
-    // バリデーション
-    const upperValidation = validateRows(upperResults, true);
-    const lowerValidation = validateRows(lowerResults, false);
-    
-    if (!upperValidation.isValid || !lowerValidation.isValid) {
-      setHasValidationError(true);
-      const allErrors = [...upperValidation.errors, ...lowerValidation.errors];
-      const totalErrors = allErrors.length;
-      
-      // エラーメッセージを構築
-      let errorMessage = `${totalErrors}件のエラーがあります：\n\n`;
-      errorMessage += '【入力ルール】\n';
-      errorMessage += '・消費数量: 0~999 の数値を入力してください\n';
-      errorMessage += '・請求区分: 選択してください\n';
-      if (lowerValidation.errors.length > 0) {
-        errorMessage += '・パーツ区分: 選択してください\n';
-      }
-      errorMessage += '\n【エラー詳細】\n';
-      allErrors.forEach((error, index) => {
-        errorMessage += `${index + 1}. ${error.partsNumber} (${error.partsName})\n`;
-        error.errors.forEach(err => {
-          errorMessage += `   - ${err}\n`;
-        });
-        if (index < allErrors.length - 1) {
-          errorMessage += '\n';
-        }
-      });
-      
-      setToastMessage(errorMessage);
-      
-      // 少し遅延してからスクロール（トーストが表示された後）
-      setTimeout(() => {
-        scrollToFirstError();
-      }, 100);
-      
-      return;
-    }
-    
-    setIsConfirming(true);
-    try {
-      // シミュレート用の遅延
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // 確定後、チェックがONの行を非活性にする
-      const updatedUpperResults = upperResults.map(row => 
-        row.checked ? { ...row, checked: true, isDisabled: true, hasError: false } : row
-      );
-      const updatedLowerResults = lowerResults.map(row => 
-        row.checked ? { ...row, checked: true, isDisabled: true, hasError: false } : row
-      );
-      
-      setUpperResults(updatedUpperResults);
-      setLowerResults(updatedLowerResults);
-      
-      console.log('確定処理', { upperResults: updatedUpperResults, lowerResults: updatedLowerResults });
-      // TODO: 実際の確定処理を実装
-    } catch (error) {
-      console.error('確定処理エラー:', error);
-    } finally {
-      setIsConfirming(false);
-    }
-  };
-
-  // タグのクリック処理（オンオフ）
-  const handleTagClick = (type: 'bu' | 'customerSite' | 'orderSource') => {
-    if (type === 'bu') {
-      if (upperBu) {
-        setUpperBu('');
-      } else {
-        // 最初の有効なBUを設定（空でない最初の値）
-        const firstBu = buOptions.find(opt => opt.value !== '');
-        if (firstBu) {
-          setUpperBu(firstBu.value);
-        }
-      }
-    } else if (type === 'customerSite') {
-      if (upperCustomerSite) {
-        setUpperCustomerSite('');
-      } else {
-        setUpperCustomerSite('顧客拠点1');
-      }
-    } else if (type === 'orderSource') {
-      if (upperOrderSource) {
-        setUpperOrderSource('');
-      } else {
-        setUpperOrderSource('オーダ元1');
-      }
-    }
-  };
 
   return (
     <div className={styles.container}>
-      {/* 上部セクション */}
-      <div className={styles.upperSection}>
+      {/* セクション */}
+      <div className={styles.lowerSection}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>パーツ実績登録（事前受注・FE手配・マイグレ）</h2>
+          <h2 className={styles.sectionTitle}>パーツ実績登録（顧客提供・預託在庫）</h2>
           <div className={styles.headerRight}>
-            <Select
-              options={[
-                { value: '', label: '選択してください' },
-                { value: '事前受注', label: '事前受注' },
-                { value: 'FE手配', label: 'FE手配' },
-                { value: 'マイグレ', label: 'マイグレ' },
-              ]}
-              value={upperSelection}
-              onChange={(e) => setUpperSelection(e.target.value)}
-              style={{ minWidth: '150px' }}
-            />
-            <Button 
-              variant="default" 
-              onClick={handleConfirm} 
-              loading={isConfirming} 
-              disabled={isConfirming || !hasValidCheckedRow()}
+            <Button
+              variant="default"
+              onClick={handleOpenRequestModal}
             >
-              確定
+              パーツリクエスト登録
             </Button>
           </div>
         </div>
 
-        <div className={styles.tagsContainer}>
-          <div 
-            className={`${styles.tag} ${upperBu ? styles.tagActive : ''}`}
-            onClick={() => handleTagClick('bu')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleTagClick('bu');
-              }
-            }}
-          >
-            <span className={styles.tagText}>BU: {upperBu || '未選択'}</span>
-            {upperBu && (
-              <button
-                type="button"
-                className={styles.tagClose}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setUpperBu('');
-                }}
-                aria-label="BUタグを削除"
-              >
-                <FiX />
-              </button>
-            )}
-          </div>
-          <div 
-            className={`${styles.tag} ${upperCustomerSite ? styles.tagActive : ''}`}
-            onClick={() => handleTagClick('customerSite')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleTagClick('customerSite');
-              }
-            }}
-          >
-            <span className={styles.tagText}>顧客拠点: {upperCustomerSite || '未選択'}</span>
-            {upperCustomerSite && (
-              <button
-                type="button"
-                className={styles.tagClose}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setUpperCustomerSite('');
-                }}
-                aria-label="顧客拠点タグを削除"
-              >
-                <FiX />
-              </button>
-            )}
-          </div>
-          <div 
-            className={`${styles.tag} ${upperOrderSource ? styles.tagActive : ''}`}
-            onClick={() => handleTagClick('orderSource')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleTagClick('orderSource');
-              }
-            }}
-          >
-            <span className={styles.tagText}>オーダ元: {upperOrderSource || '未選択'}</span>
-            {upperOrderSource && (
-              <button
-                type="button"
-                className={styles.tagClose}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setUpperOrderSource('');
-                }}
-                aria-label="オーダ元タグを削除"
-              >
-                <FiX />
-              </button>
-            )}
-          </div>
-        </div>
-
         <div className={styles.tableContainer}>
           <div className={styles.tableWrapper}>
             <table className={styles.resultsTable}>
@@ -572,114 +168,8 @@ export const PartsRegistration = () => {
                     <label className={styles.checkboxLabel}>
                       <input
                         type="checkbox"
-                        checked={upperResults.length > 0 && upperResults.every(item => item.checked || item.isDisabled)}
-                        onChange={handleUpperSelectAll}
-                        className={styles.checkboxInput}
-                      />
-                      <span className={styles.checkboxCustom}></span>
-                    </label>
-                  </th>
-                  <th className={styles.quantityColumn}>消費数量</th>
-                  <th>BU</th>
-                  <th>パーツ番号</th>
-                  <th>パーツ名称／型式（英）</th>
-                  <th>ユニット</th>
-                  <th>シグナルコード</th>
-                  <th>販売ステータス</th>
-                  <th>インテルフラグ</th>
-                  <th>消耗品フラグ</th>
-                  <th>備考</th>
-                  <th>区分</th>
-                  <th className={styles.billingColumn}>請求区分</th>
-                </tr>
-              </thead>
-              <tbody>
-                {upperResults.map((item, index) => (
-                  <tr 
-                    key={index}
-                    ref={(el) => { if (item.hasError) upperErrorRefs.current[index] = el; }}
-                    className={`${item.hasError ? styles.hasError : ''} ${item.isDisabled ? styles.isDisabled : ''}`}
-                  >
-                    <td className={styles.checkboxColumn}>
-                      <label className={styles.checkboxLabel}>
-                        <input
-                          type="checkbox"
-                          checked={item.checked}
-                          onChange={() => handleUpperCheckboxChange(index)}
-                          disabled={item.isDisabled}
-                          className={styles.checkboxInput}
-                        />
-                        <span className={styles.checkboxCustom}></span>
-                      </label>
-                    </td>
-                    <td className={styles.quantityColumn}>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={3}
-                        value={item.consumptionQuantity !== undefined ? item.consumptionQuantity : ''}
-                        onChange={(e) => handleUpperQuantityChange(index, e.target.value)}
-                        onBlur={(e) => {
-                          // フォーカスが外れた時、空の場合は0を表示
-                          if (e.target.value === '') {
-                            handleUpperQuantityChange(index, '0');
-                          }
-                        }}
-                        disabled={item.isDisabled}
-                        className={`${styles.quantityInput} ${item.quantityError && !item.isDisabled ? styles.inputError : ''}`}
-                      />
-                    </td>
-                    <td>{item.bu}</td>
-                    <td>
-                      <button
-                        className={styles.partsNumberLink}
-                        onClick={() => handlePartsNumberClick(item.partsNumber)}
-                      >
-                        {item.partsNumber}
-                      </button>
-                    </td>
-                    <td>{item.partsName}</td>
-                    <td>{item.unit}</td>
-                    <td>{item.signalCode}</td>
-                    <td>{item.salesStatus}</td>
-                    <td>{item.intelFlag}</td>
-                    <td>{item.consumableFlag}</td>
-                    <td>{item.remarks}</td>
-                    <td>{item.category}</td>
-                    <td className={styles.billingColumn}>
-                      <Select
-                        options={billingCategoryOptions}
-                        value={item.billingCategory || ''}
-                        onChange={(e) => handleUpperBillingCategoryChange(index, e.target.value)}
-                        disabled={item.isDisabled}
-                        style={{ minWidth: '120px' }}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* 下部セクション */}
-      <div className={styles.lowerSection}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>パーツ実績登録（顧客提供・預託在庫）</h2>
-        </div>
-
-        <div className={styles.tableContainer}>
-          <div className={styles.tableWrapper}>
-            <table className={styles.resultsTable}>
-              <thead>
-                <tr>
-                  <th className={styles.checkboxColumn}>
-                    <label className={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={lowerResults.length > 0 && lowerResults.every(item => item.checked || item.isDisabled)}
-                        onChange={handleLowerSelectAll}
+                        checked={results.length > 0 && results.every(item => item.checked || item.isDisabled)}
+                        onChange={handleSelectAll}
                         className={styles.checkboxInput}
                       />
                       <span className={styles.checkboxCustom}></span>
@@ -701,10 +191,9 @@ export const PartsRegistration = () => {
                 </tr>
               </thead>
               <tbody>
-                {lowerResults.map((item, index) => (
-                  <tr 
+                {results.map((item, index) => (
+                  <tr
                     key={index}
-                    ref={(el) => { if (item.hasError) lowerErrorRefs.current[index] = el; }}
                     className={`${item.hasError ? styles.hasError : ''} ${item.isDisabled ? styles.isDisabled : ''}`}
                   >
                     <td className={styles.checkboxColumn}>
@@ -712,7 +201,7 @@ export const PartsRegistration = () => {
                         <input
                           type="checkbox"
                           checked={item.checked}
-                          onChange={() => handleLowerCheckboxChange(index)}
+                          onChange={() => handleCheckboxChange(index)}
                           disabled={item.isDisabled}
                           className={styles.checkboxInput}
                         />
@@ -725,11 +214,11 @@ export const PartsRegistration = () => {
                         inputMode="numeric"
                         maxLength={3}
                         value={item.consumptionQuantity !== undefined ? item.consumptionQuantity : ''}
-                        onChange={(e) => handleLowerQuantityChange(index, e.target.value)}
+                        onChange={(e) => handleQuantityChange(index, e.target.value)}
                         onBlur={(e) => {
                           // フォーカスが外れた時、空の場合は0を表示
                           if (e.target.value === '') {
-                            handleLowerQuantityChange(index, '0');
+                            handleQuantityChange(index, '0');
                           }
                         }}
                         disabled={item.isDisabled}
@@ -757,7 +246,7 @@ export const PartsRegistration = () => {
                       <Select
                         options={partsCategoryOptions}
                         value={item.partsCategory || ''}
-                        onChange={(e) => handleLowerPartsCategoryChange(index, e.target.value)}
+                        onChange={(e) => handlePartsCategoryChange(index, e.target.value)}
                         disabled={item.isDisabled}
                         style={{ minWidth: '120px' }}
                       />
@@ -766,7 +255,7 @@ export const PartsRegistration = () => {
                       <Select
                         options={billingCategoryOptions}
                         value={item.billingCategory || ''}
-                        onChange={(e) => handleLowerBillingCategoryChange(index, e.target.value)}
+                        onChange={(e) => handleBillingCategoryChange(index, e.target.value)}
                         disabled={item.isDisabled}
                         style={{ minWidth: '120px' }}
                       />
@@ -778,18 +267,414 @@ export const PartsRegistration = () => {
           </div>
         </div>
       </div>
-      
+
+      {/* パーツリクエスト登録モーダル */}
+      <PartsRequestModal
+        isOpen={isRequestModalOpen}
+        onClose={handleCloseRequestModal}
+        onRegister={(requestData) => {
+          // 登録されたデータを実績に追加
+          const newRow: RegistrationRow = {
+            bu: requestData.bu || '',
+            partsNumber: requestData.partsNumber || '',
+            partsName: requestData.name || '',
+            unit: requestData.shippingUnit || '',
+            signalCode: requestData.signalCode || '',
+            salesStatus: requestData.salesPossibleStatus || '',
+            intelFlag: '',
+            consumableFlag: '',
+            remarks: requestData.comment || '',
+            category: requestData.product || '',
+            checked: true,
+            consumptionQuantity: requestData.orderQuantity || requestData.quantity || 0,
+            billingCategory: '',
+            partsCategory: '顧客提供',
+            hasError: false,
+            isDisabled: false,
+          };
+          setResults([...results, newRow]);
+          setToastMessage('パーツリクエストが登録されました');
+        }}
+        isRegistering={isRegistering}
+        setIsRegistering={setIsRegistering}
+        onCloseModal={handleCloseRequestModal}
+      />
+
       {/* トースト通知 */}
       {toastMessage && (
         <Toast
           message={toastMessage}
-          type="error"
+          type={toastMessage.includes('エラー') ? 'error' : 'success'}
           duration={5000}
           onClose={() => setToastMessage(null)}
           position="top-center"
         />
       )}
     </div>
+  );
+};
+
+// パーツリクエスト登録モーダル
+interface PartsRequestModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onRegister: (data: PartsRequestData) => void;
+  isRegistering: boolean;
+  setIsRegistering: (value: boolean) => void;
+  onCloseModal: () => void; // モーダルを閉じる関数を追加
+}
+
+interface PartsRequestData {
+  name: string;
+  orderQuantity: number;
+  comment: string;
+  signalCode: string;
+  partsDetail: string;
+  partsNumber: string;
+  partsReturn: string;
+  price: number;
+  customerPrice: number;
+  factoryPreparedParts: string;
+  purchasePossibleStatus: string;
+  shippingUnit: string;
+  quantity: number;
+  product: string;
+  purchaseOrder: string;
+  salesPossible: string;
+  salesPossibleStatus: string;
+  returnReason: string;
+  bu?: string;
+}
+
+const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRegistering, onCloseModal }: PartsRequestModalProps) => {
+  const [name, setName] = useState<string>('');
+  const [orderQuantity, setOrderQuantity] = useState<string>('');
+  const [comment, setComment] = useState<string>('');
+  const [signalCode, setSignalCode] = useState<string>('');
+  const [partsDetail, setPartsDetail] = useState<string>('');
+  const [partsNumber, setPartsNumber] = useState<string>('');
+  const [partsReturn, setPartsReturn] = useState<string>('');
+  const [price, setPrice] = useState<string>('');
+  const [customerPrice, setCustomerPrice] = useState<string>('');
+  const [factoryPreparedParts, setFactoryPreparedParts] = useState<string>('');
+  const [purchasePossibleStatus, setPurchasePossibleStatus] = useState<string>('');
+  const [shippingUnit, setShippingUnit] = useState<string>('');
+  const [quantity, setQuantity] = useState<string>('');
+  const [product, setProduct] = useState<string>('');
+  const [purchaseOrder, setPurchaseOrder] = useState<string>('');
+  const [salesPossible, setSalesPossible] = useState<string>('');
+  const [salesPossibleStatus, setSalesPossibleStatus] = useState<string>('');
+  const [returnReason, setReturnReason] = useState<string>('');
+
+  const yesNoOptions: SelectOption[] = [
+    { value: '', label: '選択してください' },
+    { value: 'Yes', label: 'Yes' },
+    { value: 'No', label: 'No' },
+  ];
+
+  const purchasePossibleStatusOptions: SelectOption[] = [
+    { value: '', label: '選択してください' },
+    { value: '可能', label: '可能' },
+    { value: '不可', label: '不可' },
+    { value: '要確認', label: '要確認' },
+  ];
+
+  const salesPossibleStatusOptions: SelectOption[] = [
+    { value: '', label: '選択してください' },
+    { value: '販売可能', label: '販売可能' },
+    { value: '販売不可', label: '販売不可' },
+    { value: '要確認', label: '要確認' },
+  ];
+
+  const handleRegister = async () => {
+    setIsRegistering(true);
+    try {
+      // シミュレート用の遅延
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const requestData: PartsRequestData = {
+        name,
+        orderQuantity: parseInt(orderQuantity, 10) || 0,
+        comment,
+        signalCode,
+        partsDetail,
+        partsNumber,
+        partsReturn,
+        price: parseFloat(price) || 0,
+        customerPrice: parseFloat(customerPrice) || 0,
+        factoryPreparedParts,
+        purchasePossibleStatus,
+        shippingUnit,
+        quantity: parseInt(quantity, 10) || 0,
+        product,
+        purchaseOrder,
+        salesPossible,
+        salesPossibleStatus,
+        returnReason,
+      };
+
+      onRegister(requestData);
+
+      // フォームをリセット
+      setName('');
+      setOrderQuantity('');
+      setComment('');
+      setSignalCode('');
+      setPartsDetail('');
+      setPartsNumber('');
+      setPartsReturn('');
+      setPrice('');
+      setCustomerPrice('');
+      setFactoryPreparedParts('');
+      setPurchasePossibleStatus('');
+      setShippingUnit('');
+      setQuantity('');
+      setProduct('');
+      setPurchaseOrder('');
+      setSalesPossible('');
+      setSalesPossibleStatus('');
+      setReturnReason('');
+
+      // ローディング状態を解除
+      setIsRegistering(false);
+
+      // ローディングが終わったらモーダルを閉じる（PartsSearch.tsxと同じ方法）
+      onCloseModal();
+    } catch (error) {
+      console.error('登録エラー:', error);
+      setIsRegistering(false);
+    }
+  };
+
+  const handleCancel = () => {
+    onClose();
+  };
+
+  const footer = (
+    <div className={styles.modalFooter}>
+      <Button variant="sub" onClick={handleCancel} disabled={isRegistering}>
+        キャンセル
+      </Button>
+      <Button variant="default" onClick={handleRegister} loading={isRegistering}>
+        登録
+      </Button>
+    </div>
+  );
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="パーツリクエスト登録"
+      footer={footer}
+      size="large"
+    >
+      <div className={styles.requestModalContent}>
+        <div className={styles.requestForm}>
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Input
+                label="名前"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="名前を入力"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Input
+                label="オーダー数量"
+                type="number"
+                value={orderQuantity}
+                onChange={(e) => setOrderQuantity(e.target.value)}
+                placeholder="オーダー数量を入力"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <label className={styles.textareaLabel}>コメント</label>
+              <textarea
+                className={styles.textarea}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="コメントを入力"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Input
+                label="シグナルコード"
+                value={signalCode}
+                onChange={(e) => setSignalCode(e.target.value)}
+                placeholder="シグナルコードを入力"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Input
+                label="パーツ詳細"
+                value={partsDetail}
+                onChange={(e) => setPartsDetail(e.target.value)}
+                placeholder="パーツ詳細を入力"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Input
+                label="パーツ番号"
+                value={partsNumber}
+                onChange={(e) => setPartsNumber(e.target.value)}
+                placeholder="パーツ番号を入力"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Select
+                label="パーツ返却"
+                options={yesNoOptions}
+                value={partsReturn}
+                onChange={(e) => setPartsReturn(e.target.value)}
+                placeholder="選択してください"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Input
+                label="価格"
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="価格を入力"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Input
+                label="顧客価格"
+                type="number"
+                value={customerPrice}
+                onChange={(e) => setCustomerPrice(e.target.value)}
+                placeholder="顧客価格を入力"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Select
+                label="工場準備済みパーツ"
+                options={yesNoOptions}
+                value={factoryPreparedParts}
+                onChange={(e) => setFactoryPreparedParts(e.target.value)}
+                placeholder="選択してください"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Select
+                label="購入可能ステータス"
+                options={purchasePossibleStatusOptions}
+                value={purchasePossibleStatus}
+                onChange={(e) => setPurchasePossibleStatus(e.target.value)}
+                placeholder="選択してください"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Input
+                label="出荷単位"
+                value={shippingUnit}
+                onChange={(e) => setShippingUnit(e.target.value)}
+                placeholder="出荷単位を入力"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Input
+                label="数量"
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="数量を入力"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Input
+                label="製品"
+                value={product}
+                onChange={(e) => setProduct(e.target.value)}
+                placeholder="製品を入力"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Input
+                label="発注書"
+                value={purchaseOrder}
+                onChange={(e) => setPurchaseOrder(e.target.value)}
+                placeholder="発注書を入力"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Select
+                label="販売可能"
+                options={yesNoOptions}
+                value={salesPossible}
+                onChange={(e) => setSalesPossible(e.target.value)}
+                placeholder="選択してください"
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Select
+                label="販売可能ステータス"
+                options={salesPossibleStatusOptions}
+                value={salesPossibleStatus}
+                onChange={(e) => setSalesPossibleStatus(e.target.value)}
+                placeholder="選択してください"
+                fullWidth
+              />
+            </div>
+          </div>
+
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Input
+                label="返却理由"
+                value={returnReason}
+                onChange={(e) => setReturnReason(e.target.value)}
+                placeholder="返却理由を入力"
+                fullWidth
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </Modal>
   );
 };
 
