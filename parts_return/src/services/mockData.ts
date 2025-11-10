@@ -95,7 +95,7 @@ const mockPartsData = generateMockParts(30);
 // 詳細データ生成
 const generateMockPartsDetail = (partsData: PartsSearchResult[]): Record<string, PartsDetail> => {
   const detailData: Record<string, PartsDetail> = {};
-  
+
   partsData.forEach((part) => {
     detailData[part.partsNumber] = {
       bu: part.bu,
@@ -257,7 +257,7 @@ const generateMockPartsReturn = (count: number): PartsReturnRow[] => {
     const usedQuantity = Math.floor(arrangementQuantity * 0.3) + (i % 3);
     // 残数量を1~5の範囲に設定
     const remainingQuantity = (i % 5) + 1;
-    
+
     return {
       partsNumber: `P${String(index).padStart(3, '0')}`,
       partsName: `パーツ名称${index}`,
@@ -281,7 +281,8 @@ const generateMockPartsReturn = (count: number): PartsReturnRow[] => {
   });
 };
 
-const mockPartsReturnData = generateMockPartsReturn(20);
+// 一覧表示は一時的に停止しモーダル表示のみとしたため、2行分のデータがあれば十分
+const mockPartsReturnData = generateMockPartsReturn(2);
 
 // パーツ返却データを取得するAPI関数（モック）
 export const getPartsReturnData = async (): Promise<PartsReturnRow[]> => {

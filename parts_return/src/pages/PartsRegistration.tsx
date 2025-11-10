@@ -1,21 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button, Select, Toast, Modal, Input } from '../components';
 import type { SelectOption } from '../components';
 import { getPartsReturnData, type PartsReturnRow } from '../services/mockData';
 import { FiAlertCircle } from 'react-icons/fi';
 import styles from './PartsRegistration.module.css';
 
-// パーツ番号をクリックした時の処理
-const handlePartsNumberClick = (partsNumber: string) => {
-  // 常に別タブでパーツ詳細画面を開く（元の登録画面はそのまま）
-  const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
-  window.open(detailUrl, '_blank');
-};
+// // パーツ番号をクリックした時の処理（一覧表示を再度利用する場合に復活させる）
+// const handlePartsNumberClick = (partsNumber: string) => {
+//   // 常に別タブでパーツ詳細画面を開く（元の登録画面はそのまま）
+//   const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
+//   window.open(detailUrl, '_blank');
+// };
 
 export const PartsRegistration = () => {
   const [results, setResults] = useState<PartsReturnRow[]>([]);
   const [selectedReturnIndex, setSelectedReturnIndex] = useState<number | null>(null);
-  const [isReturnModalOpen, setIsReturnModalOpen] = useState<boolean>(false);
   const [isReturning, setIsReturning] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -28,17 +27,38 @@ export const PartsRegistration = () => {
     loadData();
   }, []);
 
-  // 返却モーダルを開く
-  const handleOpenReturnModal = (index: number) => {
-    setSelectedReturnIndex(index);
-    setIsReturnModalOpen(true);
-  };
+  useEffect(() => {
+    if (results.length === 0) {
+      return;
+    }
 
-  // 返却モーダルを閉じる
-  const handleCloseReturnModal = () => {
-    setIsReturnModalOpen(false);
-    setSelectedReturnIndex(null);
-  };
+    const params = new URLSearchParams(window.location.search);
+    const partsNumberParam = params.get('partsNumber');
+
+    if (partsNumberParam) {
+      const matchedIndex = results.findIndex(
+        (item) => item.partsNumber === partsNumberParam
+      );
+
+      if (matchedIndex !== -1 && matchedIndex !== selectedReturnIndex) {
+        setSelectedReturnIndex(matchedIndex);
+        return;
+      }
+    }
+
+    if (selectedReturnIndex === null) {
+      setSelectedReturnIndex(0);
+    }
+  }, [results, selectedReturnIndex]);
+
+  const selectedParts = selectedReturnIndex !== null ? results[selectedReturnIndex] : null;
+
+  // 一覧表示は一時的に停止（必要になれば下記コメントアウトを戻す）
+  /*
+  <div className={styles.section}>
+    ...一覧表示ロジック...
+  </div>
+  */
 
   return (
     <div className={styles.container}>
@@ -46,98 +66,31 @@ export const PartsRegistration = () => {
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>パーツ返却</h2>
         </div>
-
-        <div className={styles.tableContainer}>
-          <div className={styles.tableWrapper}>
-            <table className={styles.resultsTable}>
-              <thead>
-                <tr>
-                  <th>パーツ番号</th>
-                  <th>パーツ名</th>
-                  <th>手配数</th>
-                  <th>使用数</th>
-                  <th>残数量</th>
-                  <th>リクエスト番号</th>
-                  <th>NCDR番号</th>
-                  <th>オーダー元</th>
-                  <th>WO#</th>
-                  <th>オーダーステージ</th>
-                  <th>配送番号</th>
-                  <th>予定納期</th>
-                  <th>BU</th>
-                  <th>拠点</th>
-                  <th>顧客名</th>
-                  <th>作業予定日</th>
-                  <th>アクション</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((item, index) => (
-                  <tr
-                    key={index}
-                    className={item.isReturned ? styles.isReturned : ''}
-                  >
-                    <td>
-                      <button
-                        className={styles.partsNumberLink}
-                        onClick={() => handlePartsNumberClick(item.partsNumber)}
-                      >
-                        {item.partsNumber}
-                      </button>
-                    </td>
-                    <td>{item.partsName}</td>
-                    <td>{item.arrangementQuantity}</td>
-                    <td>{item.usedQuantity}</td>
-                    <td>{item.remainingQuantity}</td>
-                    <td>{item.requestNumber}</td>
-                    <td>{item.ncdrNumber}</td>
-                    <td>{item.orderSource}</td>
-                    <td>{item.woNumber}</td>
-                    <td>{item.orderStage}</td>
-                    <td>{item.shippingNumber}</td>
-                    <td>{item.scheduledDeliveryDate}</td>
-                    <td>{item.bu}</td>
-                    <td>{item.site}</td>
-                    <td>{item.customerName}</td>
-                    <td>{item.scheduledWorkDate}</td>
-                    <td>
-                      <Button
-                        variant="sub"
-                        onClick={() => handleOpenReturnModal(index)}
-                        disabled={item.isReturned}
-                        className={styles.returnButton}
-                      >
-                        返却
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div>
+          {selectedParts ? (
+            <ReturnInfoModal
+              isOpen
+              onClose={() => { }}
+              partsData={selectedParts}
+              onRegister={(_returnData) => {
+                if (selectedReturnIndex === null) {
+                  return;
+                }
+                const newResults = [...results];
+                newResults[selectedReturnIndex].isReturned = true;
+                setResults(newResults);
+                setToastMessage('パーツ返却が登録されました');
+              }}
+              isReturning={isReturning}
+              setIsReturning={setIsReturning}
+              onCloseModal={() => { }}
+              renderAsScreen
+            />
+          ) : (
+            <p>パーツ情報を読み込み中です...</p>
+          )}
         </div>
       </div>
-
-      {/* 返却情報モーダル */}
-      {selectedReturnIndex !== null && (
-        <ReturnInfoModal
-          isOpen={isReturnModalOpen}
-          onClose={handleCloseReturnModal}
-          partsData={results[selectedReturnIndex]}
-          onRegister={(_returnData) => {
-            // 返却処理
-            const newResults = [...results];
-            newResults[selectedReturnIndex].isReturned = true;
-            setResults(newResults);
-            setToastMessage('パーツ返却が登録されました');
-            setIsReturnModalOpen(false);
-            setSelectedReturnIndex(null);
-          }}
-          isReturning={isReturning}
-          setIsReturning={setIsReturning}
-          onCloseModal={handleCloseReturnModal}
-        />
-      )}
 
       {/* トースト通知 */}
       {toastMessage && (
@@ -162,6 +115,7 @@ interface ReturnInfoModalProps {
   isReturning: boolean;
   setIsReturning: (value: boolean) => void;
   onCloseModal: () => void;
+  renderAsScreen?: boolean;
 }
 
 interface ReturnData {
@@ -185,28 +139,36 @@ const ReturnInfoModal = ({
   isReturning,
   setIsReturning,
   onCloseModal,
+  renderAsScreen = false,
 }: ReturnInfoModalProps) => {
   const [returnItems, setReturnItems] = useState<ReturnItem[]>([]);
   const [returnDestination, setReturnDestination] = useState<string>('');
 
+  const createInitialReturnItems = useCallback(() => {
+    const rowsCount = 2;
+    return Array.from({ length: rowsCount }, (_, i) => ({
+      number: i + 1,
+      returnQuantity: 0,
+      packageStatus: '',
+      returnReason: '',
+      wmsBatchNumber: '',
+    }));
+  }, [partsData]);
+
   // モーダルが開かれたときに残数量に応じて返却項目を初期化
   useEffect(() => {
-    if (isOpen && partsData) {
-      const remainingQuantity = partsData.remainingQuantity;
-      const initialItems: ReturnItem[] = Array.from({ length: remainingQuantity }, (_, i) => ({
-        number: i + 1,
-        returnQuantity: 0,
-        packageStatus: '',
-        returnReason: '',
-        wmsBatchNumber: '',
-      }));
-      setReturnItems(initialItems);
+    if ((renderAsScreen || isOpen) && partsData) {
+      setReturnItems(createInitialReturnItems());
       setReturnDestination('');
-    } else if (!isOpen) {
+    } else if (!renderAsScreen && !isOpen) {
       setReturnItems([]);
       setReturnDestination('');
     }
-  }, [isOpen, partsData]);
+  }, [isOpen, partsData, renderAsScreen, createInitialReturnItems]);
+
+  if (!renderAsScreen && !isOpen) {
+    return null;
+  }
 
   const packageStatusOptions: SelectOption[] = [
     { value: '', label: '選択してください' },
@@ -264,9 +226,14 @@ const ReturnInfoModal = ({
 
       onRegister(returnData);
 
-      // フォームをリセット（モーダルが閉じられるので不要だが、念のため）
-      setReturnItems([]);
-      setReturnDestination('');
+      if (renderAsScreen) {
+        setReturnItems(createInitialReturnItems());
+        setReturnDestination('');
+      } else {
+        // フォームをリセット（モーダルが閉じられるので不要だが、念のため）
+        setReturnItems([]);
+        setReturnDestination('');
+      }
 
       // ローディング状態を解除
       setIsReturning(false);
@@ -280,11 +247,20 @@ const ReturnInfoModal = ({
   };
 
   const handleCancel = () => {
+    if (renderAsScreen) {
+      setReturnItems(createInitialReturnItems());
+      setReturnDestination('');
+      return;
+    }
     onClose();
   };
 
+  const footerClassName = renderAsScreen
+    ? `${styles.modalFooter} ${styles.modalFooterStandalone}`
+    : styles.modalFooter;
+
   const footer = (
-    <div className={styles.modalFooter}>
+    <div className={footerClassName}>
       <Button variant="sub" onClick={handleCancel} disabled={isReturning}>
         キャンセル
       </Button>
@@ -294,14 +270,8 @@ const ReturnInfoModal = ({
     </div>
   );
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="返却情報入力"
-      footer={footer}
-      size="large"
-    >
+  const content = (
+    <>
       <div className={styles.returnModalContent}>
         {/* 選択したパーツ情報 */}
         <div className={styles.selectedPartsInfo}>
@@ -413,6 +383,23 @@ const ReturnInfoModal = ({
           />
         </div>
       </div>
+      {renderAsScreen && footer}
+    </>
+  );
+
+  if (renderAsScreen) {
+    return <>{content}</>;
+  }
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="返却情報入力"
+      footer={footer}
+      size="large"
+    >
+      {content}
     </Modal>
   );
 };

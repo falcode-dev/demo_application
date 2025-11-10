@@ -744,6 +744,11 @@
   justify-content: flex-end;
 }
 
+.modalFooterStandalone {
+  justify-content: right;
+  padding-top: var(--spacing-lg);
+}
+
 .requestModalContent {
   display: flex;
   flex-direction: column;
