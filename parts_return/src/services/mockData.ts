@@ -219,3 +219,73 @@ export const getAlternativeParts = async (partsNumber: string): Promise<PartsSea
 
   return alternativePart ? [alternativePart] : [];
 };
+
+// パーツ返却用のデータ型
+export interface PartsReturnRow {
+  partsNumber: string;
+  partsName: string;
+  arrangementQuantity: number; // 手配数
+  usedQuantity: number; // 使用数
+  remainingQuantity: number; // 残数量
+  requestNumber: string; // リクエスト番号
+  ncdrNumber: string; // NCDR番号
+  orderSource: string; // オーダー元
+  woNumber: string; // WO#
+  orderStage: string; // オーダーステージ
+  shippingNumber: string; // 配送番号
+  scheduledDeliveryDate: string; // 予定納期
+  bu: string;
+  site: string; // 拠点
+  customerName: string; // 顧客名
+  scheduledWorkDate: string; // 作業予定日
+  isReturned: boolean; // 返却済みかどうか
+  shippingWarehouse?: string; // 出荷元倉庫
+}
+
+// パーツ返却用のモックデータ生成
+const generateMockPartsReturn = (count: number): PartsReturnRow[] => {
+  const buList = ['BU1', 'BU2', 'BU3', 'BU4'];
+  const siteList = ['東京', '大阪', '名古屋', '福岡'];
+  const customerList = ['顧客A', '顧客B', '顧客C', '顧客D'];
+  const orderStageList = ['受注', '手配中', '出荷済み', '納品済み'];
+  const warehouseList = ['倉庫A', '倉庫B', '倉庫C'];
+
+  return Array.from({ length: count }, (_, i) => {
+    const index = i + 1;
+    const bu = buList[i % buList.length];
+    const arrangementQuantity = 10 + (i % 5) * 2;
+    const usedQuantity = Math.floor(arrangementQuantity * 0.3) + (i % 3);
+    // 残数量を1~5の範囲に設定
+    const remainingQuantity = (i % 5) + 1;
+    
+    return {
+      partsNumber: `P${String(index).padStart(3, '0')}`,
+      partsName: `パーツ名称${index}`,
+      arrangementQuantity,
+      usedQuantity,
+      remainingQuantity,
+      requestNumber: `REQ${String(index).padStart(4, '0')}`,
+      ncdrNumber: `NCDR${String(index).padStart(4, '0')}`,
+      orderSource: `オーダー元${(i % 3) + 1}`,
+      woNumber: `WO${String(index).padStart(5, '0')}`,
+      orderStage: orderStageList[i % orderStageList.length],
+      shippingNumber: `SHIP${String(index).padStart(4, '0')}`,
+      scheduledDeliveryDate: `2024-${String((i % 12) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`,
+      bu,
+      site: siteList[i % siteList.length],
+      customerName: customerList[i % customerList.length],
+      scheduledWorkDate: `2024-${String((i % 12) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`,
+      isReturned: false,
+      shippingWarehouse: warehouseList[i % warehouseList.length],
+    };
+  });
+};
+
+const mockPartsReturnData = generateMockPartsReturn(20);
+
+// パーツ返却データを取得するAPI関数（モック）
+export const getPartsReturnData = async (): Promise<PartsReturnRow[]> => {
+  // シミュレート用の遅延
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return [...mockPartsReturnData];
+};

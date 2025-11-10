@@ -10,7 +10,8 @@
 }
 
 .upperSection,
-.lowerSection {
+.lowerSection,
+.section {
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -26,6 +27,10 @@
 }
 
 .lowerSection {
+  flex: 1;
+}
+
+.section {
   flex: 1;
 }
 
@@ -194,6 +199,24 @@
   white-space: nowrap;
 }
 
+/* テーブルの横スクロール対応 */
+@media (max-width: 1024px) {
+  .tableWrapper {
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .resultsTable {
+    min-width: 1400px;
+  }
+
+  .resultsTable th,
+  .resultsTable td {
+    font-size: var(--font-size-sm);
+  }
+}
+
 .resultsTable tbody tr:hover {
   background-color: var(--color-bg-hover);
 }
@@ -206,21 +229,25 @@
   background-color: rgba(255, 51, 51, 0.15);
 }
 
-.resultsTable tbody tr.isDisabled {
+.resultsTable tbody tr.isDisabled,
+.resultsTable tbody tr.isReturned {
   background-color: var(--color-bg-secondary, #f5f5f5);
   cursor: not-allowed;
   opacity: 0.7;
 }
 
-.resultsTable tbody tr.isDisabled:hover {
+.resultsTable tbody tr.isDisabled:hover,
+.resultsTable tbody tr.isReturned:hover {
   background-color: var(--color-bg-secondary, #f5f5f5);
 }
 
-.resultsTable tbody tr.isDisabled td {
+.resultsTable tbody tr.isDisabled td,
+.resultsTable tbody tr.isReturned td {
   color: var(--color-text-secondary, #999999);
 }
 
-.resultsTable tbody tr.isDisabled button {
+.resultsTable tbody tr.isDisabled button,
+.resultsTable tbody tr.isReturned button {
   color: var(--color-text-secondary, #999999);
   opacity: 0.7;
 }
@@ -455,31 +482,50 @@
   }
 
   .upperSection,
-  .lowerSection {
+  .lowerSection,
+  .section {
     overflow: visible;
-    padding: var(--spacing-md);
+    padding: 0;
+  }
+
+  .sectionHeader {
+    margin-bottom: var(--spacing-sm);
   }
 
   .tableContainer {
     flex: none;
     min-height: 0;
     overflow: visible;
+    width: 100%;
+    margin-top: var(--spacing-sm);
   }
 
   .tableWrapper {
     flex: none;
     min-height: 0;
-    max-height: calc(100vh - 450px);
+    max-height: calc(100vh - 250px);
+    overflow-x: auto;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
   }
 
   .resultsTable {
     font-size: var(--font-size-xs);
+    min-width: 1200px;
+    width: 100%;
   }
 
   .resultsTable th,
   .resultsTable td {
-    padding: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+  }
+
+  .resultsTable th {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
   }
 
   .tagsContainer {
@@ -489,10 +535,100 @@
 
   .sectionTitle {
     font-size: var(--font-size-lg);
+    margin: 0;
   }
 
-  .sectionHeader {
-    padding: var(--spacing-sm) 0;
+  /* 返却ボタンのモバイル調整 */
+  .returnButton {
+    min-width: 60px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+  }
+
+  /* モーダル内のレスポンシブ調整 */
+  .returnModalContent {
+    gap: var(--spacing-md);
+  }
+
+  .selectedPartsInfo {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+  }
+
+  .selectedPartsInfoRow {
+    flex-wrap: wrap;
+  }
+
+  .selectedPartsLabel {
+    min-width: auto;
+    flex-shrink: 0;
+  }
+
+  .returnInfoHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .returnInfoTitle {
+    font-size: var(--font-size-base);
+  }
+
+  .alertIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .returnInfoMessage {
+    font-size: var(--font-size-xs);
+    line-height: 1.5;
+    width: 100%;
+  }
+
+  .returnItemsTable {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .returnTable {
+    font-size: var(--font-size-xs);
+    min-width: 600px;
+    width: 100%;
+  }
+
+  .returnTable th,
+  .returnTable td {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+  }
+
+  .returnTable th {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .returnTable input,
+  .returnTable select {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-xs);
+    width: 100%;
+    min-width: 0;
+  }
+
+  .returnDestinationField {
+    width: 100%;
+  }
+
+  .modalFooter {
+    flex-direction: column-reverse;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+  }
+
+  .modalFooter button {
+    width: 100%;
   }
 }
 
@@ -503,17 +639,37 @@
   }
 
   .upperSection,
-  .lowerSection {
-    padding: var(--spacing-sm);
+  .lowerSection,
+  .section {
+    padding: 0;
+  }
+
+  .sectionHeader {
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .tableContainer {
+    width: 100%;
+    margin-top: var(--spacing-xs);
+  }
+
+  .tableWrapper {
+    max-height: calc(100vh - 200px);
   }
 
   .resultsTable {
-    font-size: var(--font-size-xs);
+    font-size: 0.7rem;
+    min-width: 1200px;
   }
 
   .resultsTable th,
   .resultsTable td {
     padding: var(--spacing-xs);
+    font-size: 0.7rem;
+  }
+
+  .resultsTable th {
+    font-size: 0.7rem;
   }
 
   .sectionTitle {
@@ -528,6 +684,56 @@
 
   .headerRight>* {
     width: 100%;
+  }
+
+  /* 返却ボタンの小画面調整 */
+  .returnButton {
+    min-width: 50px;
+    padding: var(--spacing-xs);
+    font-size: 0.7rem;
+  }
+
+  /* モーダル内の小画面調整 */
+  .returnModalContent {
+    gap: var(--spacing-sm);
+  }
+
+  .selectedPartsInfo {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-xs);
+  }
+
+  .selectedPartsInfoRow {
+    font-size: var(--font-size-sm);
+  }
+
+  .returnInfoTitle {
+    font-size: var(--font-size-sm);
+  }
+
+  .returnInfoMessage {
+    font-size: 0.7rem;
+  }
+
+  .returnTable {
+    min-width: 500px;
+    font-size: 0.7rem;
+  }
+
+  .returnTable th,
+  .returnTable td {
+    padding: var(--spacing-xs);
+    font-size: 0.7rem;
+  }
+
+  .returnTable input,
+  .returnTable select {
+    font-size: 0.7rem;
+    padding: 0.25rem;
+  }
+
+  .modalFooter {
+    padding: var(--spacing-sm);
   }
 }
 
@@ -600,6 +806,195 @@
 
 .textarea:disabled {
   background-color: var(--color-bg-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 数量入力（他の画面と同じスタイル） */
+.quantityInput {
+  width: 100px;
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  min-height: 2.5rem;
+  transition: all var(--transition-base);
+  outline: none;
+  text-align: center;
+}
+
+.quantityInput::placeholder {
+  color: var(--color-text-disabled);
+}
+
+.quantityInput:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.quantityInput:disabled {
+  background-color: var(--color-bg-secondary, #f5f5f5);
+  color: var(--color-text-secondary, #999999);
+  cursor: not-allowed;
+  opacity: 0.7;
+  border-color: var(--color-border, #e0e0e0);
+}
+
+.quantityInput.inputError {
+  border-color: #ff3333;
+  background-color: rgba(255, 51, 51, 0.05);
+}
+
+.quantityInput.inputError:focus {
+  border-color: #ff3333;
+  box-shadow: 0 0 0 3px rgba(255, 51, 51, 0.2);
+}
+
+/* 返却モーダル関連 */
+.returnModalContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  overflow: visible;
+}
+
+/* 選択したパーツ情報（水色枠） */
+.selectedPartsInfo {
+  background-color: #e6f3ff;
+  border: 1px solid #b3d9ff;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+}
+
+.selectedPartsInfoRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.selectedPartsLabel {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  min-width: 100px;
+}
+
+/* 返却情報入力ヘッダー */
+.returnInfoHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.returnInfoTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.alertIcon {
+  color: #ff9800;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.returnInfoMessage {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  flex: 1;
+}
+
+/* 返却項目テーブル */
+.returnItemsTable {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.returnTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-bg-primary);
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.returnTable thead {
+  background-color: var(--color-bg-secondary);
+}
+
+.returnTable th {
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+  background-color: var(--color-bg-secondary);
+}
+
+.returnTable td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.returnTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.returnTable tbody tr:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.addButtonContainer {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: var(--spacing-sm);
+}
+
+/* 返却先選択 */
+.returnDestinationField {
+  margin-top: var(--spacing-md);
+}
+
+/* 返却ボタン */
+.returnButton {
+  background-color: white;
+  color: var(--color-text-secondary, #666666);
+  border: 1px solid var(--color-border, #cccccc);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-width: 80px;
+  transition: all var(--transition-base);
+}
+
+.returnButton:hover:not(:disabled) {
+  background-color: var(--color-bg-hover, #f5f5f5);
+  border-color: var(--color-text-secondary, #666666);
+  color: var(--color-text-primary);
+}
+
+.returnButton:active:not(:disabled) {
+  background-color: var(--color-bg-secondary, #e0e0e0);
+}
+
+.returnButton:disabled {
+  background-color: var(--color-bg-secondary, #f5f5f5);
+  color: var(--color-text-secondary, #999999);
+  border-color: var(--color-border, #e0e0e0);
   cursor: not-allowed;
   opacity: 0.6;
 }

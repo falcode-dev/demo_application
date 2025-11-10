@@ -1,162 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Select, Toast, Modal, Input } from '../components';
 import type { SelectOption } from '../components';
-import type { PartsSearchResult } from '../services/mockData';
+import { getPartsReturnData, type PartsReturnRow } from '../services/mockData';
+import { FiAlertCircle } from 'react-icons/fi';
 import styles from './PartsRegistration.module.css';
 
 // パーツ番号をクリックした時の処理
 const handlePartsNumberClick = (partsNumber: string) => {
   // 常に別タブでパーツ詳細画面を開く（元の登録画面はそのまま）
   const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
-
-  // PowerApps環境でも通常のWeb環境でも、window.openでタブを開く
-  // PowerAppsのWebリソース内からwindow.openを呼び出すと、ブラウザのタブで開かれる
   window.open(detailUrl, '_blank');
 };
 
-interface RegistrationRow extends PartsSearchResult {
-  checked: boolean;
-  consumptionQuantity: number | undefined;
-  billingCategory?: string;
-  partsCategory?: string;
-  hasError?: boolean;
-  isDisabled?: boolean;
-  quantityError?: boolean;
-  billingCategoryError?: boolean;
-  partsCategoryError?: boolean;
-}
-
 export const PartsRegistration = () => {
-  // セクションの状態
-  const [results, setResults] = useState<RegistrationRow[]>([]);
-
-  // パーツリクエスト登録モーダルの状態
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
-  const [isRegistering, setIsRegistering] = useState<boolean>(false);
-
-  // トースト通知の状態
+  const [results, setResults] = useState<PartsReturnRow[]>([]);
+  const [selectedReturnIndex, setSelectedReturnIndex] = useState<number | null>(null);
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState<boolean>(false);
+  const [isReturning, setIsReturning] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // パーツリクエスト登録モーダルを開く
-  const handleOpenRequestModal = () => {
-    setIsRequestModalOpen(true);
+  // 初期データの読み込み
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await getPartsReturnData();
+      setResults(data);
+    };
+    loadData();
+  }, []);
+
+  // 返却モーダルを開く
+  const handleOpenReturnModal = (index: number) => {
+    setSelectedReturnIndex(index);
+    setIsReturnModalOpen(true);
   };
 
-  // パーツリクエスト登録モーダルを閉じる
-  const handleCloseRequestModal = () => {
-    setIsRequestModalOpen(false);
+  // 返却モーダルを閉じる
+  const handleCloseReturnModal = () => {
+    setIsReturnModalOpen(false);
+    setSelectedReturnIndex(null);
   };
-
-  // 請求区分の選択肢
-  const billingCategoryOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: '有償', label: '有償' },
-    { value: '無償', label: '無償' },
-    { value: '保証', label: '保証' },
-  ];
-
-  // パーツ区分の選択肢
-  const partsCategoryOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: '顧客提供', label: '顧客提供' },
-    { value: '預託在庫', label: '預託在庫' },
-  ];
-
-  // 全件チェック/解除
-  const handleSelectAll = () => {
-    const allChecked = results.every(item => item.checked || item.isDisabled);
-    const newResults = results.map(item => {
-      if (item.isDisabled) {
-        return item; // 非活性の行は変更しない
-      }
-      return {
-        ...item,
-        checked: !allChecked,
-        hasError: false, // チェックを変更したらエラーをクリア
-      };
-    });
-    setResults(newResults);
-  };
-
-  // チェックボックス変更
-  const handleCheckboxChange = (index: number) => {
-    const newResults = [...results];
-    if (newResults[index].isDisabled) {
-      return; // 非活性の行は変更不可
-    }
-    newResults[index].checked = !newResults[index].checked;
-    newResults[index].hasError = false; // チェックを変更したらエラーをクリア
-    setResults(newResults);
-  };
-
-  // 消費数量変更
-  const handleQuantityChange = (index: number, value: string) => {
-    if (results[index].isDisabled) {
-      return; // 非活性の行は変更不可
-    }
-    // 数値のみ許可し、3桁まで制限
-    const numericValue = value.replace(/[^0-9]/g, '').slice(0, 3);
-    const newResults = [...results];
-    if (numericValue === '') {
-      // 空の場合は0に設定
-      newResults[index].consumptionQuantity = 0;
-    } else {
-      const numValue = parseInt(numericValue, 10);
-      if (!isNaN(numValue) && numValue >= 0 && numValue <= 999) {
-        newResults[index].consumptionQuantity = numValue;
-        // 数値を入力したらチェックボックスをオンにする
-        newResults[index].checked = true;
-      }
-    }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setResults(newResults);
-  };
-
-  // パーツ区分変更
-  const handlePartsCategoryChange = (index: number, value: string) => {
-    if (results[index].isDisabled) {
-      return; // 非活性の行は変更不可
-    }
-    const newResults = [...results];
-    newResults[index].partsCategory = value;
-    // 選択肢を選んだらチェックボックスをオンにする
-    if (value !== '') {
-      newResults[index].checked = true;
-    }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setResults(newResults);
-  };
-
-  // 請求区分変更
-  const handleBillingCategoryChange = (index: number, value: string) => {
-    if (results[index].isDisabled) {
-      return; // 非活性の行は変更不可
-    }
-    const newResults = [...results];
-    newResults[index].billingCategory = value;
-    // 選択肢を選んだらチェックボックスをオンにする
-    if (value !== '') {
-      newResults[index].checked = true;
-    }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setResults(newResults);
-  };
-
 
   return (
     <div className={styles.container}>
-      {/* セクション */}
-      <div className={styles.lowerSection}>
+      <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>パーツ実績登録（顧客提供・預託在庫）</h2>
-          <div className={styles.headerRight}>
-            <Button
-              variant="default"
-              onClick={handleOpenRequestModal}
-            >
-              パーツリクエスト登録
-            </Button>
-          </div>
+          <h2 className={styles.sectionTitle}>パーツ返却</h2>
         </div>
 
         <div className={styles.tableContainer}>
@@ -164,68 +52,31 @@ export const PartsRegistration = () => {
             <table className={styles.resultsTable}>
               <thead>
                 <tr>
-                  <th className={styles.checkboxColumn}>
-                    <label className={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={results.length > 0 && results.every(item => item.checked || item.isDisabled)}
-                        onChange={handleSelectAll}
-                        className={styles.checkboxInput}
-                      />
-                      <span className={styles.checkboxCustom}></span>
-                    </label>
-                  </th>
-                  <th className={styles.quantityColumn}>消費数量</th>
-                  <th>BU</th>
                   <th>パーツ番号</th>
-                  <th>パーツ名称／型式（英）</th>
-                  <th>ユニット</th>
-                  <th>シグナルコード</th>
-                  <th>販売ステータス</th>
-                  <th>インテルフラグ</th>
-                  <th>消耗品フラグ</th>
-                  <th>備考</th>
-                  <th>区分</th>
-                  <th className={styles.categoryColumn}>パーツ区分</th>
-                  <th className={styles.billingColumn}>請求区分</th>
+                  <th>パーツ名</th>
+                  <th>手配数</th>
+                  <th>使用数</th>
+                  <th>残数量</th>
+                  <th>リクエスト番号</th>
+                  <th>NCDR番号</th>
+                  <th>オーダー元</th>
+                  <th>WO#</th>
+                  <th>オーダーステージ</th>
+                  <th>配送番号</th>
+                  <th>予定納期</th>
+                  <th>BU</th>
+                  <th>拠点</th>
+                  <th>顧客名</th>
+                  <th>作業予定日</th>
+                  <th>アクション</th>
                 </tr>
               </thead>
               <tbody>
                 {results.map((item, index) => (
                   <tr
                     key={index}
-                    className={`${item.hasError ? styles.hasError : ''} ${item.isDisabled ? styles.isDisabled : ''}`}
+                    className={item.isReturned ? styles.isReturned : ''}
                   >
-                    <td className={styles.checkboxColumn}>
-                      <label className={styles.checkboxLabel}>
-                        <input
-                          type="checkbox"
-                          checked={item.checked}
-                          onChange={() => handleCheckboxChange(index)}
-                          disabled={item.isDisabled}
-                          className={styles.checkboxInput}
-                        />
-                        <span className={styles.checkboxCustom}></span>
-                      </label>
-                    </td>
-                    <td className={styles.quantityColumn}>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={3}
-                        value={item.consumptionQuantity !== undefined ? item.consumptionQuantity : ''}
-                        onChange={(e) => handleQuantityChange(index, e.target.value)}
-                        onBlur={(e) => {
-                          // フォーカスが外れた時、空の場合は0を表示
-                          if (e.target.value === '') {
-                            handleQuantityChange(index, '0');
-                          }
-                        }}
-                        disabled={item.isDisabled}
-                        className={`${styles.quantityInput} ${item.quantityError && !item.isDisabled ? styles.inputError : ''}`}
-                      />
-                    </td>
-                    <td>{item.bu}</td>
                     <td>
                       <button
                         className={styles.partsNumberLink}
@@ -235,30 +86,29 @@ export const PartsRegistration = () => {
                       </button>
                     </td>
                     <td>{item.partsName}</td>
-                    <td>{item.unit}</td>
-                    <td>{item.signalCode}</td>
-                    <td>{item.salesStatus}</td>
-                    <td>{item.intelFlag}</td>
-                    <td>{item.consumableFlag}</td>
-                    <td>{item.remarks}</td>
-                    <td>{item.category}</td>
-                    <td className={styles.categoryColumn}>
-                      <Select
-                        options={partsCategoryOptions}
-                        value={item.partsCategory || ''}
-                        onChange={(e) => handlePartsCategoryChange(index, e.target.value)}
-                        disabled={item.isDisabled}
-                        style={{ minWidth: '120px' }}
-                      />
-                    </td>
-                    <td className={styles.billingColumn}>
-                      <Select
-                        options={billingCategoryOptions}
-                        value={item.billingCategory || ''}
-                        onChange={(e) => handleBillingCategoryChange(index, e.target.value)}
-                        disabled={item.isDisabled}
-                        style={{ minWidth: '120px' }}
-                      />
+                    <td>{item.arrangementQuantity}</td>
+                    <td>{item.usedQuantity}</td>
+                    <td>{item.remainingQuantity}</td>
+                    <td>{item.requestNumber}</td>
+                    <td>{item.ncdrNumber}</td>
+                    <td>{item.orderSource}</td>
+                    <td>{item.woNumber}</td>
+                    <td>{item.orderStage}</td>
+                    <td>{item.shippingNumber}</td>
+                    <td>{item.scheduledDeliveryDate}</td>
+                    <td>{item.bu}</td>
+                    <td>{item.site}</td>
+                    <td>{item.customerName}</td>
+                    <td>{item.scheduledWorkDate}</td>
+                    <td>
+                      <Button
+                        variant="sub"
+                        onClick={() => handleOpenReturnModal(index)}
+                        disabled={item.isReturned}
+                        className={styles.returnButton}
+                      >
+                        返却
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -268,37 +118,26 @@ export const PartsRegistration = () => {
         </div>
       </div>
 
-      {/* パーツリクエスト登録モーダル */}
-      <PartsRequestModal
-        isOpen={isRequestModalOpen}
-        onClose={handleCloseRequestModal}
-        onRegister={(requestData) => {
-          // 登録されたデータを実績に追加
-          const newRow: RegistrationRow = {
-            bu: requestData.bu || '',
-            partsNumber: requestData.partsNumber || '',
-            partsName: requestData.name || '',
-            unit: requestData.shippingUnit || '',
-            signalCode: requestData.signalCode || '',
-            salesStatus: requestData.salesPossibleStatus || '',
-            intelFlag: '',
-            consumableFlag: '',
-            remarks: requestData.comment || '',
-            category: requestData.product || '',
-            checked: true,
-            consumptionQuantity: requestData.orderQuantity || requestData.quantity || 0,
-            billingCategory: '',
-            partsCategory: '顧客提供',
-            hasError: false,
-            isDisabled: false,
-          };
-          setResults([...results, newRow]);
-          setToastMessage('パーツリクエストが登録されました');
-        }}
-        isRegistering={isRegistering}
-        setIsRegistering={setIsRegistering}
-        onCloseModal={handleCloseRequestModal}
-      />
+      {/* 返却情報モーダル */}
+      {selectedReturnIndex !== null && (
+        <ReturnInfoModal
+          isOpen={isReturnModalOpen}
+          onClose={handleCloseReturnModal}
+          partsData={results[selectedReturnIndex]}
+          onRegister={(returnData) => {
+            // 返却処理
+            const newResults = [...results];
+            newResults[selectedReturnIndex].isReturned = true;
+            setResults(newResults);
+            setToastMessage('パーツ返却が登録されました');
+            setIsReturnModalOpen(false);
+            setSelectedReturnIndex(null);
+          }}
+          isReturning={isReturning}
+          setIsReturning={setIsReturning}
+          onCloseModal={handleCloseReturnModal}
+        />
+      )}
 
       {/* トースト通知 */}
       {toastMessage && (
@@ -314,135 +153,129 @@ export const PartsRegistration = () => {
   );
 };
 
-// パーツリクエスト登録モーダル
-interface PartsRequestModalProps {
+// 返却情報モーダル
+interface ReturnInfoModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onRegister: (data: PartsRequestData) => void;
-  isRegistering: boolean;
-  setIsRegistering: (value: boolean) => void;
-  onCloseModal: () => void; // モーダルを閉じる関数を追加
+  partsData: PartsReturnRow;
+  onRegister: (data: ReturnData) => void;
+  isReturning: boolean;
+  setIsReturning: (value: boolean) => void;
+  onCloseModal: () => void;
 }
 
-interface PartsRequestData {
-  name: string;
-  orderQuantity: number;
-  comment: string;
-  signalCode: string;
-  partsDetail: string;
-  partsNumber: string;
-  partsReturn: string;
-  price: number;
-  customerPrice: number;
-  factoryPreparedParts: string;
-  purchasePossibleStatus: string;
-  shippingUnit: string;
-  quantity: number;
-  product: string;
-  purchaseOrder: string;
-  salesPossible: string;
-  salesPossibleStatus: string;
+interface ReturnData {
+  returnItems: ReturnItem[];
+  returnDestination: string;
+}
+
+interface ReturnItem {
+  number: number;
+  returnQuantity: number;
+  packageStatus: string;
   returnReason: string;
-  bu?: string;
+  wmsBatchNumber: string;
 }
 
-const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRegistering, onCloseModal }: PartsRequestModalProps) => {
-  const [name, setName] = useState<string>('');
-  const [orderQuantity, setOrderQuantity] = useState<string>('');
-  const [comment, setComment] = useState<string>('');
-  const [signalCode, setSignalCode] = useState<string>('');
-  const [partsDetail, setPartsDetail] = useState<string>('');
-  const [partsNumber, setPartsNumber] = useState<string>('');
-  const [partsReturn, setPartsReturn] = useState<string>('');
-  const [price, setPrice] = useState<string>('');
-  const [customerPrice, setCustomerPrice] = useState<string>('');
-  const [factoryPreparedParts, setFactoryPreparedParts] = useState<string>('');
-  const [purchasePossibleStatus, setPurchasePossibleStatus] = useState<string>('');
-  const [shippingUnit, setShippingUnit] = useState<string>('');
-  const [quantity, setQuantity] = useState<string>('');
-  const [product, setProduct] = useState<string>('');
-  const [purchaseOrder, setPurchaseOrder] = useState<string>('');
-  const [salesPossible, setSalesPossible] = useState<string>('');
-  const [salesPossibleStatus, setSalesPossibleStatus] = useState<string>('');
-  const [returnReason, setReturnReason] = useState<string>('');
+const ReturnInfoModal = ({
+  isOpen,
+  onClose,
+  partsData,
+  onRegister,
+  isReturning,
+  setIsReturning,
+  onCloseModal,
+}: ReturnInfoModalProps) => {
+  const [returnItems, setReturnItems] = useState<ReturnItem[]>([]);
+  const [returnDestination, setReturnDestination] = useState<string>('');
 
-  const yesNoOptions: SelectOption[] = [
+  // モーダルが開かれたときに残数量に応じて返却項目を初期化
+  useEffect(() => {
+    if (isOpen && partsData) {
+      const remainingQuantity = partsData.remainingQuantity;
+      const initialItems: ReturnItem[] = Array.from({ length: remainingQuantity }, (_, i) => ({
+        number: i + 1,
+        returnQuantity: 0,
+        packageStatus: '',
+        returnReason: '',
+        wmsBatchNumber: '',
+      }));
+      setReturnItems(initialItems);
+      setReturnDestination('');
+    } else if (!isOpen) {
+      setReturnItems([]);
+      setReturnDestination('');
+    }
+  }, [isOpen, partsData]);
+
+  const packageStatusOptions: SelectOption[] = [
     { value: '', label: '選択してください' },
-    { value: 'Yes', label: 'Yes' },
-    { value: 'No', label: 'No' },
+    { value: '未開封', label: '未開封' },
+    { value: '開封済み', label: '開封済み' },
   ];
 
-  const purchasePossibleStatusOptions: SelectOption[] = [
+  const returnDestinationOptions: SelectOption[] = [
     { value: '', label: '選択してください' },
-    { value: '可能', label: '可能' },
-    { value: '不可', label: '不可' },
-    { value: '要確認', label: '要確認' },
+    { value: '倉庫A', label: '倉庫A' },
+    { value: '倉庫B', label: '倉庫B' },
+    { value: '倉庫C', label: '倉庫C' },
   ];
 
-  const salesPossibleStatusOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: '販売可能', label: '販売可能' },
-    { value: '販売不可', label: '販売不可' },
-    { value: '要確認', label: '要確認' },
-  ];
 
+  // 返却数量変更
+  const handleReturnQuantityChange = (index: number, value: string) => {
+    // 数値のみ許可し、3桁まで制限
+    const numericValue = value.replace(/[^0-9]/g, '').slice(0, 3);
+    const newItems = [...returnItems];
+    if (numericValue === '') {
+      // 空の場合は0に設定
+      newItems[index].returnQuantity = 0;
+    } else {
+      const numValue = parseInt(numericValue, 10);
+      if (!isNaN(numValue) && numValue >= 0 && numValue <= 999) {
+        newItems[index].returnQuantity = numValue;
+      }
+    }
+    setReturnItems(newItems);
+  };
+
+  // 返却項目の更新（数量以外）
+  const handleReturnItemChange = (
+    index: number,
+    field: keyof ReturnItem,
+    value: string | number
+  ) => {
+    const newItems = [...returnItems];
+    newItems[index] = { ...newItems[index], [field]: value };
+    setReturnItems(newItems);
+  };
+
+  // 登録処理
   const handleRegister = async () => {
-    setIsRegistering(true);
+    setIsReturning(true);
     try {
       // シミュレート用の遅延
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const requestData: PartsRequestData = {
-        name,
-        orderQuantity: parseInt(orderQuantity, 10) || 0,
-        comment,
-        signalCode,
-        partsDetail,
-        partsNumber,
-        partsReturn,
-        price: parseFloat(price) || 0,
-        customerPrice: parseFloat(customerPrice) || 0,
-        factoryPreparedParts,
-        purchasePossibleStatus,
-        shippingUnit,
-        quantity: parseInt(quantity, 10) || 0,
-        product,
-        purchaseOrder,
-        salesPossible,
-        salesPossibleStatus,
-        returnReason,
+      const returnData: ReturnData = {
+        returnItems,
+        returnDestination,
       };
 
-      onRegister(requestData);
+      onRegister(returnData);
 
-      // フォームをリセット
-      setName('');
-      setOrderQuantity('');
-      setComment('');
-      setSignalCode('');
-      setPartsDetail('');
-      setPartsNumber('');
-      setPartsReturn('');
-      setPrice('');
-      setCustomerPrice('');
-      setFactoryPreparedParts('');
-      setPurchasePossibleStatus('');
-      setShippingUnit('');
-      setQuantity('');
-      setProduct('');
-      setPurchaseOrder('');
-      setSalesPossible('');
-      setSalesPossibleStatus('');
-      setReturnReason('');
+      // フォームをリセット（モーダルが閉じられるので不要だが、念のため）
+      setReturnItems([]);
+      setReturnDestination('');
 
       // ローディング状態を解除
-      setIsRegistering(false);
+      setIsReturning(false);
 
-      // ローディングが終わったらモーダルを閉じる（PartsSearch.tsxと同じ方法）
+      // ローディングが終わったらモーダルを閉じる
       onCloseModal();
     } catch (error) {
-      console.error('登録エラー:', error);
-      setIsRegistering(false);
+      console.error('返却エラー:', error);
+      setIsReturning(false);
     }
   };
 
@@ -452,10 +285,10 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
 
   const footer = (
     <div className={styles.modalFooter}>
-      <Button variant="sub" onClick={handleCancel} disabled={isRegistering}>
+      <Button variant="sub" onClick={handleCancel} disabled={isReturning}>
         キャンセル
       </Button>
-      <Button variant="default" onClick={handleRegister} loading={isRegistering}>
+      <Button variant="default" onClick={handleRegister} loading={isReturning}>
         登録
       </Button>
     </div>
@@ -465,216 +298,121 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="パーツリクエスト登録"
+      title="返却情報入力"
       footer={footer}
       size="large"
     >
-      <div className={styles.requestModalContent}>
-        <div className={styles.requestForm}>
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <Input
-                label="名前"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="名前を入力"
-                fullWidth
-              />
-            </div>
-            <div className={styles.formField}>
-              <Input
-                label="オーダー数量"
-                type="number"
-                value={orderQuantity}
-                onChange={(e) => setOrderQuantity(e.target.value)}
-                placeholder="オーダー数量を入力"
-                fullWidth
-              />
-            </div>
+      <div className={styles.returnModalContent}>
+        {/* 選択したパーツ情報 */}
+        <div className={styles.selectedPartsInfo}>
+          <div className={styles.selectedPartsInfoRow}>
+            <span className={styles.selectedPartsLabel}>パーツ番号：</span>
+            <span>{partsData.partsNumber}</span>
           </div>
+          <div className={styles.selectedPartsInfoRow}>
+            <span className={styles.selectedPartsLabel}>手配数：</span>
+            <span>{partsData.arrangementQuantity}</span>
+          </div>
+          <div className={styles.selectedPartsInfoRow}>
+            <span className={styles.selectedPartsLabel}>パーツ名：</span>
+            <span>{partsData.partsName}</span>
+          </div>
+          <div className={styles.selectedPartsInfoRow}>
+            <span className={styles.selectedPartsLabel}>出荷元倉庫：</span>
+            <span>{partsData.shippingWarehouse || '-'}</span>
+          </div>
+        </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <label className={styles.textareaLabel}>コメント</label>
-              <textarea
-                className={styles.textarea}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="コメントを入力"
-                rows={3}
-              />
-            </div>
-          </div>
+        {/* 返却情報入力ヘッダー */}
+        <div className={styles.returnInfoHeader}>
+          <h3 className={styles.returnInfoTitle}>返却情報入力</h3>
+          <FiAlertCircle className={styles.alertIcon} />
+          <p className={styles.returnInfoMessage}>
+            各パーツの開封状況と返却理由を個別に入力してください。例：1個は開封済み未使用、1個は未開封・手配ミス
+          </p>
+        </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <Input
-                label="シグナルコード"
-                value={signalCode}
-                onChange={(e) => setSignalCode(e.target.value)}
-                placeholder="シグナルコードを入力"
-                fullWidth
-              />
-            </div>
-            <div className={styles.formField}>
-              <Input
-                label="パーツ詳細"
-                value={partsDetail}
-                onChange={(e) => setPartsDetail(e.target.value)}
-                placeholder="パーツ詳細を入力"
-                fullWidth
-              />
-            </div>
-          </div>
+        {/* 返却項目テーブル */}
+        <div className={styles.returnItemsTable}>
+          <table className={styles.returnTable}>
+            <thead>
+              <tr>
+                <th>＃</th>
+                <th>返却数量</th>
+                <th>パッケージ開封状況</th>
+                <th>返却理由</th>
+                <th>WMSバッチ番号</th>
+              </tr>
+            </thead>
+            <tbody>
+              {returnItems.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.number}</td>
+                  <td>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={3}
+                      value={item.returnQuantity !== undefined && item.returnQuantity !== 0 ? item.returnQuantity : ''}
+                      onChange={(e) => handleReturnQuantityChange(index, e.target.value)}
+                      onBlur={(e) => {
+                        // フォーカスが外れた時、空の場合は0を表示
+                        if (e.target.value === '') {
+                          handleReturnQuantityChange(index, '0');
+                        }
+                      }}
+                      className={styles.quantityInput}
+                    />
+                  </td>
+                  <td>
+                    <Select
+                      options={packageStatusOptions}
+                      value={item.packageStatus}
+                      onChange={(e) =>
+                        handleReturnItemChange(index, 'packageStatus', e.target.value)
+                      }
+                      placeholder="選択してください"
+                      style={{ minWidth: '150px' }}
+                    />
+                  </td>
+                  <td>
+                    <Input
+                      value={item.returnReason}
+                      onChange={(e) =>
+                        handleReturnItemChange(index, 'returnReason', e.target.value)
+                      }
+                      placeholder="返却理由を入力"
+                      style={{ minWidth: '200px' }}
+                    />
+                  </td>
+                  <td>
+                    <Input
+                      value={item.wmsBatchNumber}
+                      onChange={(e) =>
+                        handleReturnItemChange(index, 'wmsBatchNumber', e.target.value)
+                      }
+                      placeholder="WMSバッチ番号を入力"
+                      style={{ minWidth: '150px' }}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <Input
-                label="パーツ番号"
-                value={partsNumber}
-                onChange={(e) => setPartsNumber(e.target.value)}
-                placeholder="パーツ番号を入力"
-                fullWidth
-              />
-            </div>
-            <div className={styles.formField}>
-              <Select
-                label="パーツ返却"
-                options={yesNoOptions}
-                value={partsReturn}
-                onChange={(e) => setPartsReturn(e.target.value)}
-                placeholder="選択してください"
-                fullWidth
-              />
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <Input
-                label="価格"
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="価格を入力"
-                fullWidth
-              />
-            </div>
-            <div className={styles.formField}>
-              <Input
-                label="顧客価格"
-                type="number"
-                value={customerPrice}
-                onChange={(e) => setCustomerPrice(e.target.value)}
-                placeholder="顧客価格を入力"
-                fullWidth
-              />
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <Select
-                label="工場準備済みパーツ"
-                options={yesNoOptions}
-                value={factoryPreparedParts}
-                onChange={(e) => setFactoryPreparedParts(e.target.value)}
-                placeholder="選択してください"
-                fullWidth
-              />
-            </div>
-            <div className={styles.formField}>
-              <Select
-                label="購入可能ステータス"
-                options={purchasePossibleStatusOptions}
-                value={purchasePossibleStatus}
-                onChange={(e) => setPurchasePossibleStatus(e.target.value)}
-                placeholder="選択してください"
-                fullWidth
-              />
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <Input
-                label="出荷単位"
-                value={shippingUnit}
-                onChange={(e) => setShippingUnit(e.target.value)}
-                placeholder="出荷単位を入力"
-                fullWidth
-              />
-            </div>
-            <div className={styles.formField}>
-              <Input
-                label="数量"
-                type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                placeholder="数量を入力"
-                fullWidth
-              />
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <Input
-                label="製品"
-                value={product}
-                onChange={(e) => setProduct(e.target.value)}
-                placeholder="製品を入力"
-                fullWidth
-              />
-            </div>
-            <div className={styles.formField}>
-              <Input
-                label="発注書"
-                value={purchaseOrder}
-                onChange={(e) => setPurchaseOrder(e.target.value)}
-                placeholder="発注書を入力"
-                fullWidth
-              />
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <Select
-                label="販売可能"
-                options={yesNoOptions}
-                value={salesPossible}
-                onChange={(e) => setSalesPossible(e.target.value)}
-                placeholder="選択してください"
-                fullWidth
-              />
-            </div>
-            <div className={styles.formField}>
-              <Select
-                label="販売可能ステータス"
-                options={salesPossibleStatusOptions}
-                value={salesPossibleStatus}
-                onChange={(e) => setSalesPossibleStatus(e.target.value)}
-                placeholder="選択してください"
-                fullWidth
-              />
-            </div>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formField}>
-              <Input
-                label="返却理由"
-                value={returnReason}
-                onChange={(e) => setReturnReason(e.target.value)}
-                placeholder="返却理由を入力"
-                fullWidth
-              />
-            </div>
-          </div>
+        {/* 返却先選択 */}
+        <div className={styles.returnDestinationField}>
+          <Select
+            label="返却先"
+            options={returnDestinationOptions}
+            value={returnDestination}
+            onChange={(e) => setReturnDestination(e.target.value)}
+            placeholder="選択してください"
+            fullWidth
+          />
         </div>
       </div>
     </Modal>
   );
 };
-
