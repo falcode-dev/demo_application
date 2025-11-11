@@ -42,7 +42,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   ) => {
     const [isFocused, setIsFocused] = useState(false);
 
-    // デフォルトサイズ（sizeが指定されていない場合）
     const defaultSizeStyle: CSSProperties = {
       paddingTop: '0.5rem',
       paddingBottom: '0.5rem',
@@ -50,12 +49,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       minHeight: '2.5rem',
     };
 
-    // sizeがCSSPropertiesの場合はマージ、文字列の場合はクラス名として扱う
     let sizeStyle = typeof size === 'object' && size !== null
       ? { ...defaultSizeStyle, ...size }
       : defaultSizeStyle;
 
-    // paddingが一括指定されている場合、個別のパディングに分解
     if ('padding' in sizeStyle && typeof sizeStyle.padding === 'string') {
       const paddingValue = sizeStyle.padding;
       const parts = paddingValue.split(' ').filter(Boolean);
@@ -63,21 +60,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       const { padding, ...restStyle } = sizeStyle;
       
       if (parts.length === 1) {
-        // padding: value → すべて同じ
         sizeStyle = {
           ...restStyle,
           paddingTop: parts[0],
           paddingBottom: parts[0],
         };
       } else if (parts.length === 2) {
-        // padding: vertical horizontal
         sizeStyle = {
           ...restStyle,
           paddingTop: parts[0],
           paddingBottom: parts[0],
         };
       } else if (parts.length === 4) {
-        // padding: top right bottom left
         sizeStyle = {
           ...restStyle,
           paddingTop: parts[0],
@@ -86,16 +80,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       }
     }
 
-    // アイコンがある場合、インラインスタイルからpaddingLeft/paddingRightを削除
-    // CSSクラスで処理するため
     if (LeftIcon && showIcons) {
-      // paddingLeftが明示的に指定されていない場合のみ削除
       if (!('paddingLeft' in sizeStyle) || sizeStyle.paddingLeft === '0.75rem') {
         const { paddingLeft, ...restStyle } = sizeStyle;
         sizeStyle = restStyle;
       }
     } else {
-      // アイコンがない場合、デフォルトのpaddingLeftを設定
       if (!('paddingLeft' in sizeStyle)) {
         sizeStyle = {
           ...sizeStyle,
@@ -105,13 +95,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     }
 
     if (RightIcon && showIcons) {
-      // paddingRightが明示的に指定されていない場合のみ削除
       if (!('paddingRight' in sizeStyle) || sizeStyle.paddingRight === '0.75rem') {
         const { paddingRight, ...restStyle } = sizeStyle;
         sizeStyle = restStyle;
       }
     } else {
-      // アイコンがない場合、デフォルトのpaddingRightを設定
       if (!('paddingRight' in sizeStyle)) {
         sizeStyle = {
           ...sizeStyle,

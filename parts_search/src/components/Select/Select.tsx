@@ -1,6 +1,7 @@
 import { forwardRef, useState, useRef, useEffect } from 'react';
 import type { SelectHTMLAttributes, CSSProperties } from 'react';
 import type { IconType } from 'react-icons';
+import { FaChevronDown } from 'react-icons/fa';
 import styles from './Select.module.css';
 
 export interface SelectOption {
@@ -63,28 +64,24 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const wrapperRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    // デフォルトサイズ（sizeが指定されていない場合）
     const defaultSizeStyle: CSSProperties = {
       padding: '0.5rem 0.75rem',
       fontSize: '1rem',
       minHeight: '2.5rem',
     };
 
-    // sizeがCSSPropertiesの場合はマージ、文字列の場合はクラス名として扱う
     const sizeStyle = typeof size === 'object' && size !== null
       ? { ...defaultSizeStyle, ...size }
       : defaultSizeStyle;
 
     const sizeClassName = typeof size === 'string' ? styles[`size-${size}`] : '';
 
-    // 検索可能な場合のフィルタリング
     const filteredOptions = searchable && searchTerm
       ? options.filter(option =>
-          option.label.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        option.label.toLowerCase().includes(searchTerm.toLowerCase())
+      )
       : options;
 
-    // クリックアウトサイドで閉じる
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
@@ -154,7 +151,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             {label}
           </label>
         )}
-          <div className={styles.selectContainer}>
+        <div className={styles.selectContainer}>
           {LeftIcon && showIcons && (
             <LeftIcon className={styles.leftIcon} aria-hidden="true" />
           )}
@@ -177,15 +174,16 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 {selectedOption ? selectedOption.label : placeholder || '選択してください'}
               </span>
               {RightIcon && showIcons ? (
-                <RightIcon 
-                  className={`${styles.rightIcon} ${isOpen ? styles.rotated : ''}`} 
-                  aria-hidden="true" 
+                <RightIcon
+                  className={`${styles.rightIcon} ${isOpen ? styles.rotated : ''}`}
+                  aria-hidden="true"
                 />
               ) : (
                 showIcons && (
-                  <span className={`${styles.defaultIcon} ${isOpen ? styles.rotated : ''}`}>
-                    ▼
-                  </span>
+                  <FaChevronDown
+                    className={`${styles.rightIcon} ${isOpen ? styles.rotated : ''}`}
+                    aria-hidden="true"
+                  />
                 )
               )}
             </button>

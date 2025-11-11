@@ -42,14 +42,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    // デフォルトサイズ（sizeが指定されていない場合）
     const defaultSizeStyle: CSSProperties = {
       padding: '0.5rem 1rem',
       fontSize: '1rem',
       minHeight: '2.5rem',
     };
 
-    // sizeがCSSPropertiesの場合はマージ、文字列の場合はクラス名として扱う
     const sizeStyle = typeof size === 'object' && size !== null
       ? { ...defaultSizeStyle, ...size }
       : defaultSizeStyle;

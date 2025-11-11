@@ -7,12 +7,6 @@ export type { InputProps } from './Input';
 export { Select } from './Select';
 export type { SelectProps, SelectOption } from './Select';
 
-export { DatePicker } from './DatePicker';
-export type { DatePickerProps } from './DatePicker';
-
 export { Spinner } from './Spinner';
 export type { SpinnerProps } from './Spinner';
-
-export { Modal } from './Modal';
-export type { ModalProps } from './Modal';
 
