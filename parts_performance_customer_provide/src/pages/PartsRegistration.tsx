@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button, Select, Modal, Input } from '../components';
+import { useTranslation } from 'react-i18next';
 import type { SelectOption } from '../components';
 import type { PartsSearchResult } from '../services/mockData';
 import { openPartsDetail } from '../utils/navigation';
@@ -21,6 +22,7 @@ interface RegistrationRow extends PartsSearchResult {
 }
 
 export const PartsRegistration = () => {
+  const { t } = useTranslation();
   const { success } = useToastContext();
   const [allResults, setAllResults] = useState<RegistrationRow[]>([]);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
@@ -37,17 +39,17 @@ export const PartsRegistration = () => {
   };
 
   const billingCategoryOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: '有償', label: '有償' },
-    { value: '無償', label: '無償' },
-    { value: '保証', label: '保証' },
+    { value: '', label: t('common.select') },
+    { value: '有償', label: t('partsRegistration.billingCategory.paid') },
+    { value: '無償', label: t('partsRegistration.billingCategory.free') },
+    { value: '保証', label: t('partsRegistration.billingCategory.warranty') },
   ];
 
   // パーツ区分の選択肢
   const partsCategoryOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: '顧客提供', label: '顧客提供' },
-    { value: '預託在庫', label: '預託在庫' },
+    { value: '', label: t('common.select') },
+    { value: '顧客提供', label: t('partsRegistration.customerProvide.partsCategory.customerProvided') },
+    { value: '預託在庫', label: t('partsRegistration.customerProvide.partsCategory.consignedStock') },
   ];
 
   const handleSelectAll = () => {
@@ -150,13 +152,13 @@ export const PartsRegistration = () => {
     <div className={styles.container}>
       <div className={styles.lowerSection}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>パーツ実績登録（顧客提供・預託在庫）</h2>
+          <h2 className={styles.sectionTitle}>{t('partsRegistration.customerProvide.title')}</h2>
           <div className={styles.headerRight}>
             <Button
               variant="default"
               onClick={handleOpenRequestModal}
             >
-              パーツ実績登録
+              {t('partsRegistration.customerProvide.openRequestModal')}
             </Button>
           </div>
         </div>
@@ -177,19 +179,11 @@ export const PartsRegistration = () => {
                       <span className={styles.checkboxCustom}></span>
                     </label>
                   </th>
-                  <th>BU</th>
-                  <th>パーツ番号</th>
-                  <th>パーツ名称／型式（英）</th>
-                  <th className={styles.quantityColumn}>消費数量</th>
-                  <th className={styles.categoryColumn}>パーツ区分</th>
-                  <th className={styles.billingColumn}>請求区分</th>
-                  <th>ユニット</th>
-                  <th>シグナルコード</th>
-                  <th>販売ステータス</th>
-                  <th>インテルフラグ</th>
-                  <th>消耗品フラグ</th>
-                  <th>備考</th>
-                  <th>区分</th>
+                  <th>{t('partsRegistration.table.partsNumber')}</th>
+                  <th>{t('partsRegistration.table.partsName')}</th>
+                  <th className={styles.quantityColumn}>{t('partsRegistration.table.consumptionQuantity')}</th>
+                  <th className={styles.categoryColumn}>{t('partsRegistration.table.partsCategory')}</th>
+                  <th className={styles.billingColumn}>{t('partsRegistration.table.billingCategory')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -210,7 +204,6 @@ export const PartsRegistration = () => {
                         <span className={styles.checkboxCustom}></span>
                       </label>
                     </td>
-                    <td>{item.bu}</td>
                     <td>
                       <button
                         className={styles.partsNumberLink}
@@ -255,13 +248,6 @@ export const PartsRegistration = () => {
                         style={{ minWidth: '120px' }}
                       />
                     </td>
-                    <td>{item.unit}</td>
-                    <td>{item.signalCode}</td>
-                    <td>{item.salesStatus}</td>
-                    <td>{item.intelFlag}</td>
-                    <td>{item.consumableFlag}</td>
-                    <td>{item.remarks}</td>
-                    <td>{item.category}</td>
                   </tr>
                 ))}
               </tbody>
@@ -295,7 +281,7 @@ export const PartsRegistration = () => {
             isDisabled: false,
           };
           setAllResults([...allResults, newRow]);
-          success('パーツリクエストが登録されました');
+          success(t('partsRegistration.customerProvide.toastRegistered'));
         }}
         isRegistering={isRegistering}
         setIsRegistering={setIsRegistering}
@@ -339,6 +325,7 @@ interface PartsRequestData {
 }
 
 const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRegistering, onCloseModal }: PartsRequestModalProps) => {
+  const { t } = useTranslation();
   const [name, setName] = useState<string>('');
   const [orderQuantity, setOrderQuantity] = useState<string>('');
   const [comment, setComment] = useState<string>('');
@@ -359,23 +346,23 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
   const [returnReason, setReturnReason] = useState<string>('');
 
   const yesNoOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: 'Yes', label: 'Yes' },
-    { value: 'No', label: 'No' },
+    { value: '', label: t('common.select') },
+    { value: 'Yes', label: t('common.yes') },
+    { value: 'No', label: t('common.no') },
   ];
 
   const purchasePossibleStatusOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: '可能', label: '可能' },
-    { value: '不可', label: '不可' },
-    { value: '要確認', label: '要確認' },
+    { value: '', label: t('common.select') },
+    { value: '可能', label: t('partsRegistration.customerProvide.requestModal.purchasePossibleStatus.possible') },
+    { value: '不可', label: t('partsRegistration.customerProvide.requestModal.purchasePossibleStatus.notPossible') },
+    { value: '要確認', label: t('partsRegistration.customerProvide.requestModal.purchasePossibleStatus.needsConfirmation') },
   ];
 
   const salesPossibleStatusOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: '販売可能', label: '販売可能' },
-    { value: '販売不可', label: '販売不可' },
-    { value: '要確認', label: '要確認' },
+    { value: '', label: t('common.select') },
+    { value: '販売可能', label: t('partsRegistration.customerProvide.requestModal.salesPossibleStatus.available') },
+    { value: '販売不可', label: t('partsRegistration.customerProvide.requestModal.salesPossibleStatus.notAvailable') },
+    { value: '要確認', label: t('partsRegistration.customerProvide.requestModal.salesPossibleStatus.needsConfirmation') },
   ];
 
   const handleRegister = async () => {
@@ -445,10 +432,10 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
   const footer = (
     <div className={styles.modalFooter}>
       <Button variant="sub" onClick={handleCancel} disabled={isRegistering}>
-        キャンセル
+        {t('common.cancel')}
       </Button>
       <Button variant="default" onClick={handleRegister} loading={isRegistering}>
-        登録
+        {t('common.register')}
       </Button>
     </div>
   );
@@ -457,7 +444,7 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="パーツリクエスト登録"
+      title={t('partsRegistration.customerProvide.requestModal.title')}
       footer={footer}
       size="large"
     >
@@ -466,20 +453,20 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <Input
-                label="名前"
+                label={t('partsRegistration.customerProvide.requestModal.fields.name.label')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="名前を入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.name.placeholder')}
                 fullWidth
               />
             </div>
             <div className={styles.formField}>
               <Input
-                label="オーダー数量"
+                label={t('partsRegistration.customerProvide.requestModal.fields.orderQuantity.label')}
                 type="number"
                 value={orderQuantity}
                 onChange={(e) => setOrderQuantity(e.target.value)}
-                placeholder="オーダー数量を入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.orderQuantity.placeholder')}
                 fullWidth
               />
             </div>
@@ -487,12 +474,14 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
 
           <div className={styles.formRow}>
             <div className={styles.formField}>
-              <label className={styles.textareaLabel}>コメント</label>
+              <label className={styles.textareaLabel}>
+                {t('partsRegistration.customerProvide.requestModal.fields.comment.label')}
+              </label>
               <textarea
                 className={styles.textarea}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="コメントを入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.comment.placeholder')}
                 rows={3}
               />
             </div>
@@ -501,19 +490,19 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <Input
-                label="シグナルコード"
+                label={t('partsRegistration.customerProvide.requestModal.fields.signalCode.label')}
                 value={signalCode}
                 onChange={(e) => setSignalCode(e.target.value)}
-                placeholder="シグナルコードを入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.signalCode.placeholder')}
                 fullWidth
               />
             </div>
             <div className={styles.formField}>
               <Input
-                label="パーツ詳細"
+                label={t('partsRegistration.customerProvide.requestModal.fields.partsDetail.label')}
                 value={partsDetail}
                 onChange={(e) => setPartsDetail(e.target.value)}
-                placeholder="パーツ詳細を入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.partsDetail.placeholder')}
                 fullWidth
               />
             </div>
@@ -522,20 +511,20 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <Input
-                label="パーツ番号"
+                label={t('partsRegistration.customerProvide.requestModal.fields.partsNumber.label')}
                 value={partsNumber}
                 onChange={(e) => setPartsNumber(e.target.value)}
-                placeholder="パーツ番号を入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.partsNumber.placeholder')}
                 fullWidth
               />
             </div>
             <div className={styles.formField}>
               <Select
-                label="パーツ返却"
+                label={t('partsRegistration.customerProvide.requestModal.fields.partsReturn.label')}
                 options={yesNoOptions}
                 value={partsReturn}
                 onChange={(e) => setPartsReturn(e.target.value)}
-                placeholder="選択してください"
+                placeholder={t('common.select')}
                 fullWidth
               />
             </div>
@@ -544,21 +533,21 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <Input
-                label="価格"
+                label={t('partsRegistration.customerProvide.requestModal.fields.price.label')}
                 type="number"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                placeholder="価格を入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.price.placeholder')}
                 fullWidth
               />
             </div>
             <div className={styles.formField}>
               <Input
-                label="顧客価格"
+                label={t('partsRegistration.customerProvide.requestModal.fields.customerPrice.label')}
                 type="number"
                 value={customerPrice}
                 onChange={(e) => setCustomerPrice(e.target.value)}
-                placeholder="顧客価格を入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.customerPrice.placeholder')}
                 fullWidth
               />
             </div>
@@ -567,21 +556,21 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <Select
-                label="工場準備済みパーツ"
+                label={t('partsRegistration.customerProvide.requestModal.fields.factoryPreparedParts.label')}
                 options={yesNoOptions}
                 value={factoryPreparedParts}
                 onChange={(e) => setFactoryPreparedParts(e.target.value)}
-                placeholder="選択してください"
+                placeholder={t('common.select')}
                 fullWidth
               />
             </div>
             <div className={styles.formField}>
               <Select
-                label="購入可能ステータス"
+                label={t('partsRegistration.customerProvide.requestModal.fields.purchasePossibleStatus.label')}
                 options={purchasePossibleStatusOptions}
                 value={purchasePossibleStatus}
                 onChange={(e) => setPurchasePossibleStatus(e.target.value)}
-                placeholder="選択してください"
+                placeholder={t('common.select')}
                 fullWidth
               />
             </div>
@@ -590,20 +579,20 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <Input
-                label="出荷単位"
+                label={t('partsRegistration.customerProvide.requestModal.fields.shippingUnit.label')}
                 value={shippingUnit}
                 onChange={(e) => setShippingUnit(e.target.value)}
-                placeholder="出荷単位を入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.shippingUnit.placeholder')}
                 fullWidth
               />
             </div>
             <div className={styles.formField}>
               <Input
-                label="数量"
+                label={t('partsRegistration.customerProvide.requestModal.fields.quantity.label')}
                 type="number"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                placeholder="数量を入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.quantity.placeholder')}
                 fullWidth
               />
             </div>
@@ -612,19 +601,19 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <Input
-                label="製品"
+                label={t('partsRegistration.customerProvide.requestModal.fields.product.label')}
                 value={product}
                 onChange={(e) => setProduct(e.target.value)}
-                placeholder="製品を入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.product.placeholder')}
                 fullWidth
               />
             </div>
             <div className={styles.formField}>
               <Input
-                label="発注書"
+                label={t('partsRegistration.customerProvide.requestModal.fields.purchaseOrder.label')}
                 value={purchaseOrder}
                 onChange={(e) => setPurchaseOrder(e.target.value)}
-                placeholder="発注書を入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.purchaseOrder.placeholder')}
                 fullWidth
               />
             </div>
@@ -633,21 +622,21 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <Select
-                label="販売可能"
+                label={t('partsRegistration.customerProvide.requestModal.fields.salesPossible.label')}
                 options={yesNoOptions}
                 value={salesPossible}
                 onChange={(e) => setSalesPossible(e.target.value)}
-                placeholder="選択してください"
+                placeholder={t('common.select')}
                 fullWidth
               />
             </div>
             <div className={styles.formField}>
               <Select
-                label="販売可能ステータス"
+                label={t('partsRegistration.customerProvide.requestModal.fields.salesPossibleStatus.label')}
                 options={salesPossibleStatusOptions}
                 value={salesPossibleStatus}
                 onChange={(e) => setSalesPossibleStatus(e.target.value)}
-                placeholder="選択してください"
+                placeholder={t('common.select')}
                 fullWidth
               />
             </div>
@@ -656,10 +645,10 @@ const PartsRequestModal = ({ isOpen, onClose, onRegister, isRegistering, setIsRe
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <Input
-                label="返却理由"
+                label={t('partsRegistration.customerProvide.requestModal.fields.returnReason.label')}
                 value={returnReason}
                 onChange={(e) => setReturnReason(e.target.value)}
-                placeholder="返却理由を入力"
+                placeholder={t('partsRegistration.customerProvide.requestModal.fields.returnReason.placeholder')}
                 fullWidth
               />
             </div>

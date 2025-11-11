@@ -10,7 +10,9 @@
     "cancel": "キャンセル",
     "ok": "OK",
     "register": "登録",
-    "notSelected": "未選択"
+    "notSelected": "未選択",
+    "yes": "はい",
+    "no": "いいえ"
   },
   "partsRegistration": {
     "title": "パーツ実績登録（事前受注・FE手配）",
@@ -32,6 +34,7 @@
       "partsName": "パーツ名称／型式（英）",
       "consumptionQuantity": "消費数量",
       "billingCategory": "請求区分",
+      "partsCategory": "パーツ区分",
       "unit": "ユニット",
       "signalCode": "シグナルコード",
       "salesStatus": "販売ステータス",
@@ -44,6 +47,97 @@
       "paid": "有償",
       "free": "無償",
       "warranty": "保証"
+    },
+    "customerProvide": {
+      "title": "パーツ実績登録（顧客提供・預託在庫）",
+      "openRequestModal": "パーツ実績登録",
+      "toastRegistered": "パーツリクエストが登録されました",
+      "partsCategory": {
+        "customerProvided": "顧客提供",
+        "consignedStock": "預託在庫"
+      },
+      "requestModal": {
+        "title": "パーツ実績登録",
+        "fields": {
+          "name": {
+            "label": "名前",
+            "placeholder": "名前を入力"
+          },
+          "orderQuantity": {
+            "label": "オーダー数量",
+            "placeholder": "オーダー数量を入力"
+          },
+          "comment": {
+            "label": "コメント",
+            "placeholder": "コメントを入力"
+          },
+          "signalCode": {
+            "label": "シグナルコード",
+            "placeholder": "シグナルコードを入力"
+          },
+          "partsDetail": {
+            "label": "パーツ詳細",
+            "placeholder": "パーツ詳細を入力"
+          },
+          "partsNumber": {
+            "label": "パーツ番号",
+            "placeholder": "パーツ番号を入力"
+          },
+          "partsReturn": {
+            "label": "パーツ返却"
+          },
+          "price": {
+            "label": "価格",
+            "placeholder": "価格を入力"
+          },
+          "customerPrice": {
+            "label": "顧客価格",
+            "placeholder": "顧客価格を入力"
+          },
+          "factoryPreparedParts": {
+            "label": "工場準備済みパーツ"
+          },
+          "purchasePossibleStatus": {
+            "label": "購入可能ステータス"
+          },
+          "shippingUnit": {
+            "label": "出荷単位",
+            "placeholder": "出荷単位を入力"
+          },
+          "quantity": {
+            "label": "数量",
+            "placeholder": "数量を入力"
+          },
+          "product": {
+            "label": "製品",
+            "placeholder": "製品を入力"
+          },
+          "purchaseOrder": {
+            "label": "発注書",
+            "placeholder": "発注書を入力"
+          },
+          "salesPossible": {
+            "label": "販売可能"
+          },
+          "salesPossibleStatus": {
+            "label": "販売可能ステータス"
+          },
+          "returnReason": {
+            "label": "返却理由",
+            "placeholder": "返却理由を入力"
+          }
+        },
+        "purchasePossibleStatus": {
+          "possible": "可能",
+          "notPossible": "不可",
+          "needsConfirmation": "要確認"
+        },
+        "salesPossibleStatus": {
+          "available": "販売可能",
+          "notAvailable": "販売不可",
+          "needsConfirmation": "要確認"
+        }
+      }
     },
     "searchModal": {
       "title": "パーツ検索",
@@ -108,4 +202,3 @@
     }
   }
 }
-

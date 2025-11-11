@@ -10,7 +10,9 @@
     "cancel": "Cancel",
     "ok": "OK",
     "register": "Register",
-    "notSelected": "Not Selected"
+    "notSelected": "Not Selected",
+    "yes": "Yes",
+    "no": "No"
   },
   "partsRegistration": {
     "title": "Parts Performance Registration (Pre-order, FE Arrangement, Migration)",
@@ -28,10 +30,11 @@
     },
     "table": {
       "bu": "BU",
-      "partsNumber": "Parts Number",
-      "partsName": "Parts Name / Model (English)",
-      "consumptionQuantity": "Consumption Quantity",
-      "billingCategory": "Billing Category",
+      "partsNumber": "Part No.",
+      "partsName": "Part Description",
+      "consumptionQuantity": "Installed QTY",
+      "billingCategory": "Billing Type",
+      "partsCategory": "Parts Category",
       "unit": "Unit",
       "signalCode": "Signal Code",
       "salesStatus": "Sales Status",
@@ -44,6 +47,97 @@
       "paid": "Paid",
       "free": "Free",
       "warranty": "Warranty"
+    },
+    "customerProvide": {
+      "title": "Parts Performance Registration",
+      "openRequestModal": "Register Parts Performance",
+      "toastRegistered": "Parts request has been registered",
+      "partsCategory": {
+        "customerProvided": "Customer Provided",
+        "consignedStock": "Consigned Stock"
+      },
+      "requestModal": {
+        "title": "Register Parts Request",
+        "fields": {
+          "name": {
+            "label": "Name",
+            "placeholder": "Enter name"
+          },
+          "orderQuantity": {
+            "label": "Order Quantity",
+            "placeholder": "Enter order quantity"
+          },
+          "comment": {
+            "label": "Comment",
+            "placeholder": "Enter comment"
+          },
+          "signalCode": {
+            "label": "Signal Code",
+            "placeholder": "Enter signal code"
+          },
+          "partsDetail": {
+            "label": "Parts Detail",
+            "placeholder": "Enter parts detail"
+          },
+          "partsNumber": {
+            "label": "Parts Number",
+            "placeholder": "Enter parts number"
+          },
+          "partsReturn": {
+            "label": "Parts Return"
+          },
+          "price": {
+            "label": "Price",
+            "placeholder": "Enter price"
+          },
+          "customerPrice": {
+            "label": "Customer Price",
+            "placeholder": "Enter customer price"
+          },
+          "factoryPreparedParts": {
+            "label": "Factory Prepared Parts"
+          },
+          "purchasePossibleStatus": {
+            "label": "Purchase Possible Status"
+          },
+          "shippingUnit": {
+            "label": "Shipping Unit",
+            "placeholder": "Enter shipping unit"
+          },
+          "quantity": {
+            "label": "Quantity",
+            "placeholder": "Enter quantity"
+          },
+          "product": {
+            "label": "Product",
+            "placeholder": "Enter product"
+          },
+          "purchaseOrder": {
+            "label": "Purchase Order",
+            "placeholder": "Enter purchase order"
+          },
+          "salesPossible": {
+            "label": "Sales Possible"
+          },
+          "salesPossibleStatus": {
+            "label": "Sales Possible Status"
+          },
+          "returnReason": {
+            "label": "Return Reason",
+            "placeholder": "Enter return reason"
+          }
+        },
+        "purchasePossibleStatus": {
+          "possible": "Possible",
+          "notPossible": "Not Possible",
+          "needsConfirmation": "Needs Confirmation"
+        },
+        "salesPossibleStatus": {
+          "available": "Available",
+          "notAvailable": "Not Available",
+          "needsConfirmation": "Needs Confirmation"
+        }
+      }
     },
     "searchModal": {
       "title": "Parts Search",
@@ -108,4 +202,3 @@
     }
   }
 }
-
