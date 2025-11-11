@@ -1,19 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Button, Select, Modal, Input, Spinner, Toast } from '../components';
+import { useTranslation } from 'react-i18next';
+import { Button, Select, Modal, Input, Spinner, SidePanel } from '../components';
 import type { SelectOption } from '../components';
-import { searchParts, buOptions, type PartsSearchResult } from '../services/mockData';
-import { FiX } from 'react-icons/fi';
+import { searchParts, buOptions, customerSiteOptions, orderSourceOptions, type PartsSearchResult } from '../services/mockData';
+import { openPartsDetail } from '../utils/navigation';
+import { useToastContext } from '../contexts/ToastContext';
+import { FiX, FiFilter } from 'react-icons/fi';
 import styles from './PartsRegistration.module.css';
-
-// パーツ番号をクリックした時の処理
-const handlePartsNumberClick = (partsNumber: string) => {
-  // 常に別タブでパーツ詳細画面を開く（元の登録画面はそのまま）
-  const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
-
-  // PowerApps環境でも通常のWeb環境でも、window.openでタブを開く
-  // PowerAppsのWebリソース内からwindow.openを呼び出すと、ブラウザのタブで開かれる
-  window.open(detailUrl, '_blank');
-};
 
 interface RegistrationRow extends PartsSearchResult {
   checked: boolean;
@@ -25,231 +18,234 @@ interface RegistrationRow extends PartsSearchResult {
   quantityError?: boolean;
   billingCategoryError?: boolean;
   partsCategoryError?: boolean;
+  customerSite?: string;
+  orderSource?: string;
 }
 
 
 export const PartsRegistration = () => {
-  // セクションの状態
+  const { t } = useTranslation();
+  const { success } = useToastContext();
   const [upperBu, setUpperBu] = useState<string>('');
   const [upperCustomerSite, setUpperCustomerSite] = useState<string>('');
   const [upperOrderSource, setUpperOrderSource] = useState<string>('');
-  const [results, setResults] = useState<RegistrationRow[]>([]);
-
-  // パーツ検索モーダルの状態
+  const [allResults, setAllResults] = useState<RegistrationRow[]>([]);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState<boolean>(false);
+  const [tempBu, setTempBu] = useState<string>('');
+  const [tempCustomerSite, setTempCustomerSite] = useState<string>('');
+  const [tempOrderSource, setTempOrderSource] = useState<string>('');
 
-  // トースト通知の状態
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const results = allResults.filter((item) => {
+    if (upperBu && item.bu !== upperBu) return false;
+    if (upperCustomerSite && item.customerSite !== upperCustomerSite) return false;
+    if (upperOrderSource && item.orderSource !== upperOrderSource) return false;
+    return true;
+  });
 
-  // パーツ検索モーダルを開く
   const handleOpenSearchModal = () => {
     setIsSearchModalOpen(true);
   };
 
-  // パーツ検索モーダルを閉じる
   const handleCloseSearchModal = () => {
     setIsSearchModalOpen(false);
   };
 
-  // 請求区分の選択肢
+  const handleOpenFilterPanel = () => {
+    setTempBu(upperBu);
+    setTempCustomerSite(upperCustomerSite);
+    setTempOrderSource(upperOrderSource);
+    setIsFilterPanelOpen(true);
+  };
+
+  const handleCloseFilterPanel = () => {
+    setIsFilterPanelOpen(false);
+  };
+
+  const handleApplyFilter = () => {
+    setUpperBu(tempBu);
+    setUpperCustomerSite(tempCustomerSite);
+    setUpperOrderSource(tempOrderSource);
+    setIsFilterPanelOpen(false);
+  };
+
+  const handleClearFilter = (type: 'bu' | 'customerSite' | 'orderSource') => {
+    if (type === 'bu') {
+      setUpperBu('');
+    } else if (type === 'customerSite') {
+      setUpperCustomerSite('');
+    } else if (type === 'orderSource') {
+      setUpperOrderSource('');
+    }
+  };
+
   const billingCategoryOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: '有償', label: '有償' },
-    { value: '無償', label: '無償' },
-    { value: '保証', label: '保証' },
+    { value: '', label: t('common.select') },
+    { value: 'paid', label: t('partsRegistration.billingCategory.paid') },
+    { value: 'free', label: t('partsRegistration.billingCategory.free') },
+    { value: 'warranty', label: t('partsRegistration.billingCategory.warranty') },
   ];
 
-  // 全件チェック/解除
   const handleSelectAll = () => {
     const allChecked = results.every(item => item.checked || item.isDisabled);
-    const newResults = results.map(item => {
+    const newResults = allResults.map(item => {
       if (item.isDisabled) {
-        return item; // 非活性の行は変更しない
+        return item;
       }
-      return {
-        ...item,
-        checked: !allChecked,
-        hasError: false, // チェックを変更したらエラーをクリア
-      };
+      const matchesFilter =
+        (!upperBu || item.bu === upperBu) &&
+        (!upperCustomerSite || item.customerSite === upperCustomerSite) &&
+        (!upperOrderSource || item.orderSource === upperOrderSource);
+
+      if (matchesFilter) {
+        return {
+          ...item,
+          checked: !allChecked,
+          hasError: false,
+        };
+      }
+      return item;
     });
-    setResults(newResults);
+    setAllResults(newResults);
   };
 
-  // チェックボックス変更
   const handleCheckboxChange = (index: number) => {
-    const newResults = [...results];
-    if (newResults[index].isDisabled) {
-      return; // 非活性の行は変更不可
+    const resultItem = results[index];
+    const actualIndex = allResults.findIndex(item =>
+      item.partsNumber === resultItem.partsNumber &&
+      item.bu === resultItem.bu
+    );
+    if (actualIndex === -1 || allResults[actualIndex].isDisabled) {
+      return;
     }
-    newResults[index].checked = !newResults[index].checked;
-    newResults[index].hasError = false; // チェックを変更したらエラーをクリア
-    setResults(newResults);
+
+    const newResults = [...allResults];
+    newResults[actualIndex].checked = !newResults[actualIndex].checked;
+    newResults[actualIndex].hasError = false;
+    setAllResults(newResults);
   };
 
-  // 消費数量変更
   const handleQuantityChange = (index: number, value: string) => {
-    if (results[index].isDisabled) {
-      return; // 非活性の行は変更不可
+    const resultItem = results[index];
+    const actualIndex = allResults.findIndex(item =>
+      item.partsNumber === resultItem.partsNumber &&
+      item.bu === resultItem.bu
+    );
+    if (actualIndex === -1 || allResults[actualIndex].isDisabled) {
+      return;
     }
-    // 数値のみ許可し、3桁まで制限
     const numericValue = value.replace(/[^0-9]/g, '').slice(0, 3);
-    const newResults = [...results];
+    const newResults = [...allResults];
     if (numericValue === '') {
-      // 空の場合は0に設定
-      newResults[index].consumptionQuantity = 0;
+      newResults[actualIndex].consumptionQuantity = 0;
     } else {
       const numValue = parseInt(numericValue, 10);
       if (!isNaN(numValue) && numValue >= 0 && numValue <= 999) {
-        newResults[index].consumptionQuantity = numValue;
-        // 数値を入力したらチェックボックスをオンにする
-        newResults[index].checked = true;
+        newResults[actualIndex].consumptionQuantity = numValue;
+        newResults[actualIndex].checked = true;
       }
     }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setResults(newResults);
+    newResults[actualIndex].hasError = false;
+    setAllResults(newResults);
   };
 
-  // 請求区分変更
   const handleBillingCategoryChange = (index: number, value: string) => {
-    if (results[index].isDisabled) {
-      return; // 非活性の行は変更不可
+    const resultItem = results[index];
+    const actualIndex = allResults.findIndex(item =>
+      item.partsNumber === resultItem.partsNumber &&
+      item.bu === resultItem.bu
+    );
+    if (actualIndex === -1 || allResults[actualIndex].isDisabled) {
+      return;
     }
-    const newResults = [...results];
-    newResults[index].billingCategory = value;
-    // 選択肢を選んだらチェックボックスをオンにする
+    const newResults = [...allResults];
+    newResults[actualIndex].billingCategory = value;
     if (value !== '') {
-      newResults[index].checked = true;
+      newResults[actualIndex].checked = true;
     }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setResults(newResults);
+    newResults[actualIndex].hasError = false;
+    setAllResults(newResults);
   };
 
 
-  // タグのクリック処理（オンオフ）
-  const handleTagClick = (type: 'bu' | 'customerSite' | 'orderSource') => {
-    if (type === 'bu') {
-      if (upperBu) {
-        setUpperBu('');
-      } else {
-        // 最初の有効なBUを設定（空でない最初の値）
-        const firstBu = buOptions.find(opt => opt.value !== '');
-        if (firstBu) {
-          setUpperBu(firstBu.value);
-        }
-      }
-    } else if (type === 'customerSite') {
-      if (upperCustomerSite) {
-        setUpperCustomerSite('');
-      } else {
-        setUpperCustomerSite('顧客拠点1');
-      }
-    } else if (type === 'orderSource') {
-      if (upperOrderSource) {
-        setUpperOrderSource('');
-      } else {
-        setUpperOrderSource('オーダ元1');
-      }
-    }
+
+  const handlePartsNumberClick = (partsNumber: string) => {
+    openPartsDetail(partsNumber);
   };
 
   return (
     <div className={styles.container}>
-      {/* セクション */}
       <div className={styles.upperSection}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>パーツ実績登録（事前受注・FE手配・マイグレ）</h2>
+          <h2 className={styles.sectionTitle}>{t('partsRegistration.title')}</h2>
           <div className={styles.headerRight}>
+            <button
+              className={styles.filterButton}
+              onClick={handleOpenFilterPanel}
+              disabled={allResults.length === 0}
+              aria-label={t('partsRegistration.editFilterButton')}
+            >
+              <FiFilter />
+              <span className={styles.filterButtonText}>{t('partsRegistration.editFilterButton')}</span>
+            </button>
             <Button
               variant="default"
               onClick={handleOpenSearchModal}
             >
-              パーツ検索
+              {t('partsRegistration.searchButton')}
             </Button>
           </div>
         </div>
 
         <div className={styles.tagsContainer}>
-          <div
-            className={`${styles.tag} ${upperBu ? styles.tagActive : ''}`}
-            onClick={() => handleTagClick('bu')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleTagClick('bu');
-              }
-            }}
-          >
-            <span className={styles.tagText}>BU: {upperBu || '未選択'}</span>
-            {upperBu && (
+          {upperBu && (
+            <div className={`${styles.tag} ${styles.tagActive}`}>
+              <span className={styles.tagText}>{t('partsRegistration.bu')}：{upperBu}</span>
               <button
                 type="button"
                 className={styles.tagClose}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setUpperBu('');
+                  handleClearFilter('bu');
                 }}
                 aria-label="BUタグを削除"
               >
                 <FiX />
               </button>
-            )}
-          </div>
-          <div
-            className={`${styles.tag} ${upperCustomerSite ? styles.tagActive : ''}`}
-            onClick={() => handleTagClick('customerSite')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleTagClick('customerSite');
-              }
-            }}
-          >
-            <span className={styles.tagText}>顧客拠点: {upperCustomerSite || '未選択'}</span>
-            {upperCustomerSite && (
+            </div>
+          )}
+          {upperCustomerSite && (
+            <div className={`${styles.tag} ${styles.tagActive}`}>
+              <span className={styles.tagText}>{t('partsRegistration.customerSite')}：{upperCustomerSite}</span>
               <button
                 type="button"
                 className={styles.tagClose}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setUpperCustomerSite('');
+                  handleClearFilter('customerSite');
                 }}
                 aria-label="顧客拠点タグを削除"
               >
                 <FiX />
               </button>
-            )}
-          </div>
-          <div
-            className={`${styles.tag} ${upperOrderSource ? styles.tagActive : ''}`}
-            onClick={() => handleTagClick('orderSource')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleTagClick('orderSource');
-              }
-            }}
-          >
-            <span className={styles.tagText}>オーダ元: {upperOrderSource || '未選択'}</span>
-            {upperOrderSource && (
+            </div>
+          )}
+          {upperOrderSource && (
+            <div className={`${styles.tag} ${styles.tagActive}`}>
+              <span className={styles.tagText}>{t('partsRegistration.orderSource')}：{upperOrderSource}</span>
               <button
                 type="button"
                 className={styles.tagClose}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setUpperOrderSource('');
+                  handleClearFilter('orderSource');
                 }}
                 aria-label="オーダ元タグを削除"
               >
                 <FiX />
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <div className={styles.tableContainer}>
@@ -268,18 +264,18 @@ export const PartsRegistration = () => {
                       <span className={styles.checkboxCustom}></span>
                     </label>
                   </th>
-                  <th>BU</th>
-                  <th>パーツ番号</th>
-                  <th>パーツ名称／型式（英）</th>
-                  <th className={styles.quantityColumn}>消費数量</th>
-                  <th className={styles.billingColumn}>請求区分</th>
-                  <th>ユニット</th>
-                  <th>シグナルコード</th>
-                  <th>販売ステータス</th>
-                  <th>インテルフラグ</th>
-                  <th>消耗品フラグ</th>
-                  <th>備考</th>
-                  <th>区分</th>
+                  <th>{t('partsRegistration.table.bu')}</th>
+                  <th>{t('partsRegistration.table.partsNumber')}</th>
+                  <th>{t('partsRegistration.table.partsName')}</th>
+                  <th className={styles.quantityColumn}>{t('partsRegistration.table.consumptionQuantity')}</th>
+                  <th className={styles.billingColumn}>{t('partsRegistration.table.billingCategory')}</th>
+                  <th>{t('partsRegistration.table.unit')}</th>
+                  <th>{t('partsRegistration.table.signalCode')}</th>
+                  <th>{t('partsRegistration.table.salesStatus')}</th>
+                  <th>{t('partsRegistration.table.intelFlag')}</th>
+                  <th>{t('partsRegistration.table.consumableFlag')}</th>
+                  <th>{t('partsRegistration.table.remarks')}</th>
+                  <th>{t('partsRegistration.table.category')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -318,7 +314,6 @@ export const PartsRegistration = () => {
                         value={item.consumptionQuantity !== undefined ? item.consumptionQuantity : ''}
                         onChange={(e) => handleQuantityChange(index, e.target.value)}
                         onBlur={(e) => {
-                          // フォーカスが外れた時、空の場合は0を表示
                           if (e.target.value === '') {
                             handleQuantityChange(index, '0');
                           }
@@ -351,12 +346,22 @@ export const PartsRegistration = () => {
         </div>
       </div>
 
-      {/* パーツ検索モーダル */}
+      <FilterPanel
+        isOpen={isFilterPanelOpen}
+        onClose={handleCloseFilterPanel}
+        bu={tempBu}
+        customerSite={tempCustomerSite}
+        orderSource={tempOrderSource}
+        onBuChange={setTempBu}
+        onCustomerSiteChange={setTempCustomerSite}
+        onOrderSourceChange={setTempOrderSource}
+        onApply={handleApplyFilter}
+      />
+
       <PartsSearchModal
         isOpen={isSearchModalOpen}
         onClose={handleCloseSearchModal}
         onRegister={(selectedParts) => {
-          // 選択されたパーツを実績に追加
           const newRows: RegistrationRow[] = selectedParts.map(part => ({
             ...part,
             checked: true,
@@ -364,37 +369,121 @@ export const PartsRegistration = () => {
             billingCategory: '',
             hasError: false,
             isDisabled: false,
+            customerSite: upperCustomerSite || undefined,
+            orderSource: upperOrderSource || undefined,
           }));
-          setResults([...results, ...newRows]);
-          // トースト通知を表示
-          setToastMessage(`${selectedParts.length}件のパーツが登録されました`);
+          setAllResults([...allResults, ...newRows]);
+          success(t('partsRegistration.registerSuccess', { count: selectedParts.length }));
         }}
         onCloseModal={handleCloseSearchModal}
       />
-
-      {/* トースト通知 */}
-      {toastMessage && (
-        <Toast
-          message={toastMessage}
-          type="success"
-          duration={5000}
-          onClose={() => setToastMessage(null)}
-          position="top-center"
-        />
-      )}
     </div>
   );
 };
 
-// パーツ検索モーダル
+interface FilterPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  bu: string;
+  customerSite: string;
+  orderSource: string;
+  onBuChange: (value: string) => void;
+  onCustomerSiteChange: (value: string) => void;
+  onOrderSourceChange: (value: string) => void;
+  onApply: () => void;
+}
+
+const FilterPanel = ({
+  isOpen,
+  onClose,
+  bu,
+  customerSite,
+  orderSource,
+  onBuChange,
+  onCustomerSiteChange,
+  onOrderSourceChange,
+  onApply,
+}: FilterPanelProps) => {
+  const { t } = useTranslation();
+
+  const buOptionsWithEmpty: SelectOption[] = [
+    { value: '', label: t('common.select') },
+    ...buOptions,
+  ];
+
+  const customerSiteOptionsWithEmpty: SelectOption[] = [
+    { value: '', label: t('common.select') },
+    ...customerSiteOptions,
+  ];
+
+  const orderSourceOptionsWithEmpty: SelectOption[] = [
+    { value: '', label: t('common.select') },
+    ...orderSourceOptions,
+  ];
+
+  return (
+    <SidePanel
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t('partsRegistration.filterModal.title')}
+      position="right"
+      width="400px"
+    >
+      <div className={styles.filterPanelContent}>
+        <div className={styles.formRow}>
+          <div className={styles.formField}>
+            <Select
+              label={t('partsRegistration.filterModal.bu')}
+              options={buOptionsWithEmpty}
+              value={bu}
+              onChange={(e) => onBuChange(e.target.value)}
+              placeholder={t('common.select')}
+              fullWidth
+            />
+          </div>
+          <div className={styles.formField}>
+            <Select
+              label={t('partsRegistration.filterModal.customerSite')}
+              options={customerSiteOptionsWithEmpty}
+              value={customerSite}
+              onChange={(e) => onCustomerSiteChange(e.target.value)}
+              placeholder={t('common.select')}
+              fullWidth
+            />
+          </div>
+          <div className={styles.formField}>
+            <Select
+              label={t('partsRegistration.filterModal.orderSource')}
+              options={orderSourceOptionsWithEmpty}
+              value={orderSource}
+              onChange={(e) => onOrderSourceChange(e.target.value)}
+              placeholder={t('common.select')}
+              fullWidth
+            />
+          </div>
+        </div>
+        <div className={styles.filterPanelFooter}>
+          <Button variant="sub" onClick={onClose} fullWidth>
+            {t('common.cancel')}
+          </Button>
+          <Button variant="default" onClick={onApply} fullWidth>
+            {t('common.ok')}
+          </Button>
+        </div>
+      </div>
+    </SidePanel>
+  );
+};
+
 interface PartsSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRegister: (selectedParts: PartsSearchResult[]) => void;
-  onCloseModal: () => void; // モーダルを閉じる関数を追加
+  onCloseModal: () => void;
 }
 
 const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSearchModalProps) => {
+  const { t } = useTranslation();
   const [bu, setBu] = useState<string>('');
   const [partsNumber, setPartsNumber] = useState<string>('');
   const [partsName, setPartsName] = useState<string>('');
@@ -404,7 +493,6 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
   const [selectedParts, setSelectedParts] = useState<Set<string>>(new Set());
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
 
-  // モーダルが閉じられたときに検索結果をリセット
   useEffect(() => {
     if (!isOpen) {
       setHasSearched(false);
@@ -415,7 +503,6 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
       setPartsName('');
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const handleSearch = async () => {
@@ -457,27 +544,19 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
   };
 
   const handlePartsNumberClick = (partsNumber: string) => {
-    // 常に別タブでパーツ詳細画面を開く
-    const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
-    window.open(detailUrl, '_blank');
+    openPartsDetail(partsNumber);
   };
 
   const handleRegister = async () => {
     setIsRegistering(true);
     try {
-      // シミュレート用の遅延
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const selectedPartsList = results.filter(r => selectedParts.has(r.partsNumber));
       onRegister(selectedPartsList);
 
-      // ローディング状態を解除
       setIsRegistering(false);
-
-      // モーダルを閉じる前にリセット
       handleReset();
-
-      // ローディングが終わったらモーダルを閉じる（PartsRequestModalと同じ方法）
       onCloseModal();
     } catch (error) {
       console.error('登録エラー:', error);
@@ -492,7 +571,7 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
   const footer = (
     <div className={styles.modalFooter}>
       <Button variant="sub" onClick={handleCancel}>
-        キャンセル
+        {t('common.cancel')}
       </Button>
       <Button
         variant="default"
@@ -500,7 +579,7 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
         disabled={selectedParts.size === 0 || isRegistering}
         loading={isRegistering}
       >
-        登録
+        {t('common.register')}
       </Button>
     </div>
   );
@@ -509,7 +588,7 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="パーツ検索"
+      title={t('partsRegistration.searchModal.title')}
       footer={footer}
       size="large"
     >
@@ -518,35 +597,35 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <Select
-                label="BU"
+                label={t('partsRegistration.searchModal.bu')}
                 options={buOptions as SelectOption[]}
                 value={bu}
                 onChange={(e) => setBu(e.target.value)}
-                placeholder="選択してください"
+                placeholder={t('common.select')}
               />
             </div>
             <div className={styles.formField}>
               <Input
-                label="パーツ番号"
+                label={t('partsRegistration.searchModal.partsNumber')}
                 value={partsNumber}
                 onChange={(e) => setPartsNumber(e.target.value)}
-                placeholder="パーツ番号を入力"
+                placeholder={t('partsRegistration.searchModal.partsNumberPlaceholder')}
               />
             </div>
             <div className={styles.formField}>
               <Input
-                label="パーツ名称／型式（英）"
+                label={t('partsRegistration.searchModal.partsName')}
                 value={partsName}
                 onChange={(e) => setPartsName(e.target.value)}
-                placeholder="パーツ名称を入力"
+                placeholder={t('partsRegistration.searchModal.partsNamePlaceholder')}
               />
             </div>
             <div className={styles.buttonRow}>
               <Button variant="default" onClick={handleSearch} disabled={loading}>
-                検索
+                {t('common.search')}
               </Button>
               <Button variant="sub" onClick={handleReset} disabled={loading}>
-                リセット
+                {t('common.reset')}
               </Button>
             </div>
           </div>
@@ -555,13 +634,13 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
         <div className={styles.resultsContainer}>
           {loading ? (
             <div className={styles.loadingContainer}>
-              <Spinner size="large" variant="primary" label="検索中..." />
+              <Spinner size="large" variant="primary" label={t('common.searching')} />
             </div>
           ) : hasSearched ? (
             <>
               <div className={styles.resultsHeader}>
                 <p className={styles.resultsCount}>
-                  検索結果: {results.length}件
+                  {t('partsRegistration.searchModal.resultsCount', { count: results.length })}
                 </p>
               </div>
               {results.length > 0 ? (
@@ -586,16 +665,16 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
                             <span className={styles.checkmark}></span>
                           </label>
                         </th>
-                        <th>BU</th>
-                        <th>パーツ番号</th>
-                        <th>パーツ名称／型式（英）</th>
-                        <th>ユニット</th>
-                        <th>シグナルコード</th>
-                        <th>販売ステータス</th>
-                        <th>インテルフラグ</th>
-                        <th>消耗品フラグ</th>
-                        <th>備考</th>
-                        <th>区分</th>
+                        <th>{t('partsRegistration.table.bu')}</th>
+                        <th>{t('partsRegistration.table.partsNumber')}</th>
+                        <th>{t('partsRegistration.table.partsName')}</th>
+                        <th>{t('partsRegistration.table.unit')}</th>
+                        <th>{t('partsRegistration.table.signalCode')}</th>
+                        <th>{t('partsRegistration.table.salesStatus')}</th>
+                        <th>{t('partsRegistration.table.intelFlag')}</th>
+                        <th>{t('partsRegistration.table.consumableFlag')}</th>
+                        <th>{t('partsRegistration.table.remarks')}</th>
+                        <th>{t('partsRegistration.table.category')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -636,13 +715,13 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
                 </div>
               ) : (
                 <div className={styles.noResults}>
-                  <p>検索結果がありません</p>
+                  <p>{t('partsRegistration.searchModal.noResults')}</p>
                 </div>
               )}
             </>
           ) : (
             <div className={styles.noResults}>
-              <p>検索条件を入力して検索してください</p>
+              <p>{t('partsRegistration.searchModal.noSearchCondition')}</p>
             </div>
           )}
         </div>

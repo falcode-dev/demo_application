@@ -27,7 +27,6 @@ export const Spinner = ({
   className,
   style,
 }: SpinnerProps) => {
-  // サイズの判定
   const sizeClassName = typeof size === 'string' ? styles[`size-${size}`] : '';
   const sizeStyle = typeof size === 'object' && size !== null ? size : {};
 

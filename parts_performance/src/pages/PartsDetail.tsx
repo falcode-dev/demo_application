@@ -1,13 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Spinner, Button } from '../components';
-import {
-  getPartsDetail,
-  getInventoryInfo,
-  getAlternativeParts,
-  type PartsDetail as PartsDetailType,
-  type InventoryInfo,
-  type PartsSearchResult,
-} from '../services/mockData';
+import { usePartsDetail } from '../hooks/usePartsDetail';
 import styles from './PartsDetail.module.css';
 
 interface PartsDetailProps {
@@ -15,96 +8,25 @@ interface PartsDetailProps {
 }
 
 export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
-  const [detail, setDetail] = useState<PartsDetailType | null>(null);
-  const [inventory, setInventory] = useState<InventoryInfo[]>([]);
-  const [alternativeParts, setAlternativeParts] = useState<PartsSearchResult[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [inventoryLoading, setInventoryLoading] = useState<boolean>(false);
-  const [region, setRegion] = useState<string>('JP');
-
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const [detailData, alternativeData] = await Promise.all([
-          getPartsDetail(partsNumber),
-          getAlternativeParts(partsNumber),
-        ]);
-        setDetail(detailData);
-        setAlternativeParts(alternativeData);
-      } catch (error) {
-        console.error('データ取得エラー:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [partsNumber]);
-
-  const loadInventory = async () => {
-    setInventoryLoading(true);
-    try {
-      const inventoryData = await getInventoryInfo(partsNumber, region);
-      setInventory(inventoryData);
-    } catch (error) {
-      console.error('在庫情報取得エラー:', error);
-    } finally {
-      setInventoryLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (partsNumber) {
-      loadInventory();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [partsNumber, region]);
-
-  // PowerApps環境かどうかを検出
-  const isPowerAppsEnvironment = () => {
-    try {
-      // PowerAppsのWEBリソースとして表示されている場合、parentにXrmオブジェクトがある
-      return window.parent !== window && (window.parent as any).Xrm !== undefined;
-    } catch (e) {
-      // クロスオリジンの場合はエラーになるが、iframe内であることは確認できる
-      return window.parent !== window;
-    }
-  };
-
-  const handleAlternativePartsClick = (altPartsNumber: string) => {
-    // 常に別タブでパーツ詳細画面を開く（元の詳細画面はそのまま）
-    const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(altPartsNumber)}`;
-
-    // PowerApps環境でも通常のWeb環境でも、window.openでタブを開く
-    // PowerAppsのWebリソース内からwindow.openを呼び出すと、ブラウザのタブで開かれる
-    window.open(detailUrl, '_blank');
-  };
-
-  const handleClose = () => {
-    // ブラウザのタブを閉じる
-    if (isPowerAppsEnvironment()) {
-      // PowerApps環境の場合、親フレームにメッセージを送信
-      try {
-        // ページを閉じるメッセージを送信
-        window.parent.postMessage({
-          type: 'closePage'
-        }, '*');
-      } catch (e) {
-        // エラーが発生した場合はwindow.close()を試みる
-        window.close();
-      }
-    } else {
-      // 通常のWeb環境の場合、ブラウザのタブを閉じる
-      window.close();
-    }
-  };
+  const { t } = useTranslation();
+  const {
+    detail,
+    inventory,
+    alternativeParts,
+    loading,
+    inventoryLoading,
+    region,
+    setRegion,
+    loadInventory,
+    handleAlternativePartsClick,
+    handleClose,
+  } = usePartsDetail(partsNumber);
 
   if (loading) {
     return (
       <div className={styles.container}>
         <div className={styles.loadingContainer}>
-          <Spinner size="large" variant="primary" label="読み込み中..." />
+          <Spinner size="large" variant="primary" label={t('common.loading')} />
         </div>
       </div>
     );
@@ -114,9 +36,9 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
     return (
       <div className={styles.container}>
         <div className={styles.errorContainer}>
-          <p>パーツ詳細情報が見つかりませんでした</p>
+          <p>{t('partsDetail.notFound')}</p>
           <button className={styles.backButton} onClick={handleClose}>
-            閉じる
+            {t('common.close')}
           </button>
         </div>
       </div>
@@ -127,151 +49,149 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
     <div className={styles.container}>
       <div className={styles.header}>
         <button className={styles.backButton} onClick={handleClose}>
-          閉じる
+          {t('common.close')}
         </button>
       </div>
 
       <div className={styles.contentGrid}>
-        {/* 左グリッド: パーツ詳細情報 */}
         <div className={styles.detailSection}>
-          <h2 className={styles.sectionTitle}>パーツ詳細情報</h2>
+          <h2 className={styles.sectionTitle}>{t('partsDetail.title')}</h2>
           <div className={styles.detailGrid}>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>BU</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.bu')}</div>
               <div className={styles.detailValue}>{detail.bu}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>プロダクトコード</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.productCode')}</div>
               <div className={styles.detailValue}>{detail.productCode}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>パーツ番号</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.partsNumber')}</div>
               <div className={styles.detailValue}>{detail.partsNumber}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>パーツ名称/型式(英)</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.partsName')}</div>
               <div className={styles.detailValue}>{detail.partsName}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>ユニット</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.unit')}</div>
               <div className={styles.detailValue}>{detail.unit}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>シグナルコード</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.signalCode')}</div>
               <div className={styles.detailValue}>{detail.signalCode}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>購買品目ステータス</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.purchaseItemStatus')}</div>
               <div className={styles.detailValue}>{detail.purchaseItemStatus}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>区分</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.category')}</div>
               <div className={styles.detailValue}>{detail.category}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>販売ステータス</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.salesStatus')}</div>
               <div className={styles.detailValue}>{detail.salesStatus}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>購買可能区分</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.purchasePossibleCategory')}</div>
               <div className={styles.detailValue}>{detail.purchasePossibleCategory}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>特定顧客販売可能区分</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.specificCustomerSalesPossibleCategory')}</div>
               <div className={styles.detailValue}>
                 {detail.specificCustomerSalesPossibleCategory}
               </div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>インテルフラグ</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.intelFlag')}</div>
               <div className={styles.detailValue}>{detail.intelFlag}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>消耗品</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.consumable')}</div>
               <div className={styles.detailValue}>{detail.consumable}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>TEL Customer URL</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.telCustomerUrl')}</div>
               <div className={styles.detailValue}>{detail.telCustomerUrl}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>LT from Warehouse in Japan to Customer</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.ltFromWarehouseJapanToCustomer')}</div>
               <div className={styles.detailValue}>{detail.ltFromWarehouseJapanToCustomer}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>LT from Factory in Japan to Customer</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.ltFromFactoryJapanToCustomer')}</div>
               <div className={styles.detailValue}>{detail.ltFromFactoryJapanToCustomer}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>LT from Genpo Warehouse in Genpo to Customer</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.ltFromGenpoWarehouseToCustomer')}</div>
               <div className={styles.detailValue}>{detail.ltFromGenpoWarehouseToCustomer}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>LT from Narita to Customer</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.ltFromNaritaToCustomer')}</div>
               <div className={styles.detailValue}>{detail.ltFromNaritaToCustomer}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>最適な代替パーツ</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.optimalAlternativeParts')}</div>
               <div className={styles.detailValue}>{detail.optimalAlternativeParts}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>備考</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.remarks')}</div>
               <div className={styles.detailValue}>{detail.remarks}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>修理可能区分</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.repairableCategory')}</div>
               <div className={styles.detailValue}>{detail.repairableCategory}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>最小受注数量</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.minOrderQuantity')}</div>
               <div className={styles.detailValue}>{detail.minOrderQuantity}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>出荷単位</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.shippingUnit')}</div>
               <div className={styles.detailValue}>{detail.shippingUnit}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>EOL区分</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.eolCategory')}</div>
               <div className={styles.detailValue}>{detail.eolCategory}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>輸出規制区分</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.exportRestrictionCategory')}</div>
               <div className={styles.detailValue}>{detail.exportRestrictionCategory}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>Global危険物フラグ</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.globalHazardousFlag')}</div>
               <div className={styles.detailValue}>{detail.globalHazardousFlag}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>主構成物質</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.mainComponent')}</div>
               <div className={styles.detailValue}>{detail.mainComponent}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>品目グループ梱包材(SDS)</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.itemGroupPackagingSds')}</div>
               <div className={styles.detailValue}>{detail.itemGroupPackagingSds}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>Heavy Object Flag</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.heavyObjectFlag')}</div>
               <div className={styles.detailValue}>{detail.heavyObjectFlag}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>Create Flag（木枠）</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.createFlag')}</div>
               <div className={styles.detailValue}>{detail.createFlag}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>自動引当権限区分</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.autoAllocationPermissionCategory')}</div>
               <div className={styles.detailValue}>{detail.autoAllocationPermissionCategory}</div>
             </div>
             <div className={styles.detailRow}>
-              <div className={styles.detailLabel}>シリアル番号プロファイル</div>
+              <div className={styles.detailLabel}>{t('partsDetail.fields.serialNumberProfile')}</div>
               <div className={styles.detailValue}>{detail.serialNumberProfile}</div>
             </div>
           </div>
         </div>
 
-        {/* 右グリッド: 在庫情報 */}
         <div className={styles.inventorySection}>
-          <h2 className={styles.sectionTitle}>在庫情報</h2>
+          <h2 className={styles.sectionTitle}>{t('partsDetail.inventory.title')}</h2>
           <div className={styles.inventoryTableWrapper}>
             {inventoryLoading && (
               <div className={styles.inventoryLoading}>
@@ -281,11 +201,11 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
             <table className={styles.inventoryTable}>
               <thead>
                 <tr>
-                  <th>倉庫</th>
-                  <th>出庫</th>
-                  <th>可能数</th>
-                  <th>引当済数</th>
-                  <th>最初在庫数</th>
+                  <th>{t('partsDetail.inventory.warehouse')}</th>
+                  <th>{t('partsDetail.inventory.outbound')}</th>
+                  <th>{t('partsDetail.inventory.available')}</th>
+                  <th>{t('partsDetail.inventory.allocated')}</th>
+                  <th>{t('partsDetail.inventory.initialStock')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -330,30 +250,29 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
               onClick={loadInventory}
               disabled={inventoryLoading}
             >
-              更新
+              {t('common.update')}
             </Button>
           </div>
         </div>
       </div>
 
-      {/* 代替パーツ */}
       <div className={styles.alternativeSection}>
-        <h2 className={styles.sectionTitle}>代替パーツ</h2>
+        <h2 className={styles.sectionTitle}>{t('partsDetail.alternativeParts.title')}</h2>
         {alternativeParts.length > 0 ? (
           <div className={styles.alternativeTableWrapper}>
             <table className={styles.alternativeTable}>
               <thead>
                 <tr>
-                  <th>BU</th>
-                  <th>パーツ番号</th>
-                  <th>パーツ名称／型式（英）</th>
-                  <th>ユニット</th>
-                  <th>シグナルコード</th>
-                  <th>販売ステータス</th>
-                  <th>インテルフラグ</th>
-                  <th>消耗品フラグ</th>
-                  <th>備考</th>
-                  <th>区分</th>
+                  <th>{t('partsRegistration.table.bu')}</th>
+                  <th>{t('partsRegistration.table.partsNumber')}</th>
+                  <th>{t('partsRegistration.table.partsName')}</th>
+                  <th>{t('partsRegistration.table.unit')}</th>
+                  <th>{t('partsRegistration.table.signalCode')}</th>
+                  <th>{t('partsRegistration.table.salesStatus')}</th>
+                  <th>{t('partsRegistration.table.intelFlag')}</th>
+                  <th>{t('partsRegistration.table.consumableFlag')}</th>
+                  <th>{t('partsRegistration.table.remarks')}</th>
+                  <th>{t('partsRegistration.table.category')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -383,7 +302,7 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
           </div>
         ) : (
           <div className={styles.noAlternativeParts}>
-            <p>代替パーツがありません</p>
+            <p>{t('partsDetail.alternativeParts.noParts')}</p>
           </div>
         )}
       </div>

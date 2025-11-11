@@ -1,0 +1,111 @@
+{
+  "common": {
+    "search": "Search",
+    "reset": "Reset",
+    "close": "Close",
+    "update": "Update",
+    "loading": "Loading...",
+    "searching": "Searching...",
+    "select": "Please select",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "register": "Register",
+    "notSelected": "Not Selected"
+  },
+  "partsRegistration": {
+    "title": "Parts Performance Registration (Pre-order, FE Arrangement, Migration)",
+    "searchButton": "Parts Search",
+    "editFilterButton": "Edit Filter",
+    "bu": "BU",
+    "customerSite": "Customer Site",
+    "orderSource": "Order Source",
+    "registerSuccess": "{{count}} parts have been registered",
+    "filterModal": {
+      "title": "Edit Filter",
+      "bu": "BU",
+      "customerSite": "Customer Site",
+      "orderSource": "Order Source"
+    },
+    "table": {
+      "bu": "BU",
+      "partsNumber": "Parts Number",
+      "partsName": "Parts Name / Model (English)",
+      "consumptionQuantity": "Consumption Quantity",
+      "billingCategory": "Billing Category",
+      "unit": "Unit",
+      "signalCode": "Signal Code",
+      "salesStatus": "Sales Status",
+      "intelFlag": "Intel Flag",
+      "consumableFlag": "Consumable Flag",
+      "remarks": "Remarks",
+      "category": "Category"
+    },
+    "billingCategory": {
+      "paid": "Paid",
+      "free": "Free",
+      "warranty": "Warranty"
+    },
+    "searchModal": {
+      "title": "Parts Search",
+      "bu": "BU",
+      "partsNumber": "Parts Number",
+      "partsNumberPlaceholder": "Enter parts number",
+      "partsName": "Parts Name / Model (English)",
+      "partsNamePlaceholder": "Enter parts name",
+      "resultsCount": "Search Results: {{count}} items",
+      "noResults": "No search results",
+      "noSearchCondition": "Please enter search conditions and search"
+    }
+  },
+  "partsDetail": {
+    "title": "Parts Detail Information",
+    "notFound": "Parts detail information not found",
+    "inventory": {
+      "title": "Inventory Information",
+      "warehouse": "Warehouse",
+      "outbound": "Outbound",
+      "available": "Available",
+      "allocated": "Allocated",
+      "initialStock": "Initial Stock"
+    },
+    "alternativeParts": {
+      "title": "Alternative Parts",
+      "noParts": "No alternative parts"
+    },
+    "fields": {
+      "bu": "BU",
+      "productCode": "Product Code",
+      "partsNumber": "Parts Number",
+      "partsName": "Parts Name / Model (English)",
+      "unit": "Unit",
+      "signalCode": "Signal Code",
+      "purchaseItemStatus": "Purchase Item Status",
+      "category": "Category",
+      "salesStatus": "Sales Status",
+      "purchasePossibleCategory": "Purchase Possible Category",
+      "specificCustomerSalesPossibleCategory": "Specific Customer Sales Possible Category",
+      "intelFlag": "Intel Flag",
+      "consumable": "Consumable",
+      "telCustomerUrl": "TEL Customer URL",
+      "ltFromWarehouseJapanToCustomer": "LT from Warehouse in Japan to Customer",
+      "ltFromFactoryJapanToCustomer": "LT from Factory in Japan to Customer",
+      "ltFromGenpoWarehouseToCustomer": "LT from Genpo Warehouse in Genpo to Customer",
+      "ltFromNaritaToCustomer": "LT from Narita to Customer",
+      "optimalAlternativeParts": "Optimal Alternative Parts",
+      "remarks": "Remarks",
+      "repairableCategory": "Repairable Category",
+      "minOrderQuantity": "Minimum Order Quantity",
+      "shippingUnit": "Shipping Unit",
+      "eolCategory": "EOL Category",
+      "exportRestrictionCategory": "Export Restriction Category",
+      "globalHazardousFlag": "Global Hazardous Flag",
+      "mainComponent": "Main Component",
+      "itemGroupPackagingSds": "Item Group Packaging (SDS)",
+      "heavyObjectFlag": "Heavy Object Flag",
+      "createFlag": "Create Flag (Wooden Frame)",
+      "autoAllocationPermissionCategory": "Auto Allocation Permission Category",
+      "serialNumberProfile": "Serial Number Profile"
+    }
+  }
+}
+

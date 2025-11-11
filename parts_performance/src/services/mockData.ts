@@ -1,4 +1,3 @@
-// 型定義
 export interface PartsSearchResult {
   bu: string;
   partsNumber: string;
@@ -55,7 +54,6 @@ export interface InventoryInfo {
   initialStock: string;
 }
 
-// BUオプション
 export const buOptions = [
   { value: 'BU1', label: 'BU1' },
   { value: 'BU2', label: 'BU2' },
@@ -63,93 +61,263 @@ export const buOptions = [
   { value: 'BU4', label: 'BU4' },
 ];
 
-// モックデータ生成関数
-const generateMockParts = (count: number): PartsSearchResult[] => {
-  const buList = ['BU1', 'BU2', 'BU3', 'BU4'];
-  const salesStatusList = ['販売中', '販売終了', '販売予定'];
-  const intelFlagList = ['Y', 'N'];
-  const consumableFlagList = ['Y', 'N'];
-  const categoryList = ['カテゴリ1', 'カテゴリ2', 'カテゴリ3', 'カテゴリ4'];
-  const unitList = ['個', 'セット', '箱', '本'];
+export const customerSiteOptions = [
+  { value: '顧客拠点1', label: '顧客拠点1' },
+  { value: '顧客拠点2', label: '顧客拠点2' },
+  { value: '顧客拠点3', label: '顧客拠点3' },
+];
 
-  return Array.from({ length: count }, (_, i) => {
-    const index = i + 1;
-    const bu = buList[i % buList.length];
-    return {
-      bu,
-      partsNumber: `P${String(index).padStart(3, '0')}`,
-      partsName: `パーツ名称${index}`,
-      unit: unitList[i % unitList.length],
-      signalCode: `SC${String(index).padStart(3, '0')}`,
-      salesStatus: salesStatusList[i % salesStatusList.length],
-      intelFlag: intelFlagList[i % intelFlagList.length],
-      consumableFlag: consumableFlagList[i % consumableFlagList.length],
-      remarks: `備考${index}`,
-      category: categoryList[i % categoryList.length],
-    };
-  });
+export const orderSourceOptions = [
+  { value: 'オーダ元1', label: 'オーダ元1' },
+  { value: 'オーダ元2', label: 'オーダ元2' },
+  { value: 'オーダ元3', label: 'オーダ元3' },
+];
+
+const mockPartsData: PartsSearchResult[] = [
+  {
+    bu: 'BU1',
+    partsNumber: 'P001',
+    partsName: '基板アセンブリA',
+    unit: '個',
+    signalCode: 'SC001',
+    salesStatus: '販売中',
+    intelFlag: 'Y',
+    consumableFlag: 'N',
+    remarks: '標準品',
+    category: '電子部品',
+  },
+  {
+    bu: 'BU1',
+    partsNumber: 'P002',
+    partsName: 'ケーブルセットB',
+    unit: 'セット',
+    signalCode: 'SC002',
+    salesStatus: '販売中',
+    intelFlag: 'N',
+    consumableFlag: 'Y',
+    remarks: '消耗品',
+    category: 'ケーブル',
+  },
+  {
+    bu: 'BU2',
+    partsNumber: 'P003',
+    partsName: 'モジュールC',
+    unit: '個',
+    signalCode: 'SC003',
+    salesStatus: '販売終了',
+    intelFlag: 'Y',
+    consumableFlag: 'N',
+    remarks: '旧型',
+    category: 'モジュール',
+  },
+  {
+    bu: 'BU2',
+    partsNumber: 'P004',
+    partsName: '電源ユニットD',
+    unit: '個',
+    signalCode: 'SC004',
+    salesStatus: '販売中',
+    intelFlag: 'N',
+    consumableFlag: 'N',
+    remarks: '標準品',
+    category: '電源',
+  },
+  {
+    bu: 'BU3',
+    partsNumber: 'P005',
+    partsName: '冷却ファンE',
+    unit: '個',
+    signalCode: 'SC005',
+    salesStatus: '販売予定',
+    intelFlag: 'N',
+    consumableFlag: 'Y',
+    remarks: '新製品',
+    category: '冷却',
+  },
+];
+
+const mockPartsDetailData: Record<string, PartsDetail> = {
+  P001: {
+    bu: 'BU1',
+    productCode: 'PC001',
+    partsNumber: 'P001',
+    partsName: '基板アセンブリA',
+    unit: '個',
+    signalCode: 'SC001',
+    purchaseItemStatus: '購入可能',
+    category: '電子部品',
+    salesStatus: '販売中',
+    purchasePossibleCategory: '可能',
+    specificCustomerSalesPossibleCategory: '可能',
+    intelFlag: 'Y',
+    consumable: 'N',
+    telCustomerUrl: 'https://example.com/p001',
+    ltFromWarehouseJapanToCustomer: '3日',
+    ltFromFactoryJapanToCustomer: '7日',
+    ltFromGenpoWarehouseToCustomer: '5日',
+    ltFromNaritaToCustomer: '4日',
+    optimalAlternativeParts: 'P002',
+    remarks: '標準品',
+    repairableCategory: '修理可能',
+    minOrderQuantity: '1',
+    shippingUnit: '個',
+    eolCategory: '継続',
+    exportRestrictionCategory: 'あり',
+    globalHazardousFlag: 'Y',
+    mainComponent: 'プラスチック',
+    itemGroupPackagingSds: 'グループA',
+    heavyObjectFlag: 'N',
+    createFlag: 'N',
+    autoAllocationPermissionCategory: '可能',
+    serialNumberProfile: 'プロファイル1',
+  },
+  P002: {
+    bu: 'BU1',
+    productCode: 'PC002',
+    partsNumber: 'P002',
+    partsName: 'ケーブルセットB',
+    unit: 'セット',
+    signalCode: 'SC002',
+    purchaseItemStatus: '購入可能',
+    category: 'ケーブル',
+    salesStatus: '販売中',
+    purchasePossibleCategory: '可能',
+    specificCustomerSalesPossibleCategory: '可能',
+    intelFlag: 'N',
+    consumable: 'Y',
+    telCustomerUrl: 'https://example.com/p002',
+    ltFromWarehouseJapanToCustomer: '3日',
+    ltFromFactoryJapanToCustomer: '7日',
+    ltFromGenpoWarehouseToCustomer: '5日',
+    ltFromNaritaToCustomer: '4日',
+    optimalAlternativeParts: 'P001',
+    remarks: '消耗品',
+    repairableCategory: '修理不可',
+    minOrderQuantity: '10',
+    shippingUnit: 'セット',
+    eolCategory: '継続',
+    exportRestrictionCategory: 'なし',
+    globalHazardousFlag: 'N',
+    mainComponent: '銅線',
+    itemGroupPackagingSds: 'グループB',
+    heavyObjectFlag: 'N',
+    createFlag: 'N',
+    autoAllocationPermissionCategory: '可能',
+    serialNumberProfile: 'プロファイル2',
+  },
+  P003: {
+    bu: 'BU2',
+    productCode: 'PC003',
+    partsNumber: 'P003',
+    partsName: 'モジュールC',
+    unit: '個',
+    signalCode: 'SC003',
+    purchaseItemStatus: '購入不可',
+    category: 'モジュール',
+    salesStatus: '販売終了',
+    purchasePossibleCategory: '不可',
+    specificCustomerSalesPossibleCategory: '不可',
+    intelFlag: 'Y',
+    consumable: 'N',
+    telCustomerUrl: 'https://example.com/p003',
+    ltFromWarehouseJapanToCustomer: '0日',
+    ltFromFactoryJapanToCustomer: '0日',
+    ltFromGenpoWarehouseToCustomer: '0日',
+    ltFromNaritaToCustomer: '0日',
+    optimalAlternativeParts: 'P004',
+    remarks: '旧型',
+    repairableCategory: '修理可能',
+    minOrderQuantity: '1',
+    shippingUnit: '個',
+    eolCategory: 'EOL',
+    exportRestrictionCategory: 'あり',
+    globalHazardousFlag: 'Y',
+    mainComponent: 'シリコン',
+    itemGroupPackagingSds: 'グループC',
+    heavyObjectFlag: 'N',
+    createFlag: 'N',
+    autoAllocationPermissionCategory: '不可',
+    serialNumberProfile: 'プロファイル3',
+  },
+  P004: {
+    bu: 'BU2',
+    productCode: 'PC004',
+    partsNumber: 'P004',
+    partsName: '電源ユニットD',
+    unit: '個',
+    signalCode: 'SC004',
+    purchaseItemStatus: '購入可能',
+    category: '電源',
+    salesStatus: '販売中',
+    purchasePossibleCategory: '可能',
+    specificCustomerSalesPossibleCategory: '可能',
+    intelFlag: 'N',
+    consumable: 'N',
+    telCustomerUrl: 'https://example.com/p004',
+    ltFromWarehouseJapanToCustomer: '3日',
+    ltFromFactoryJapanToCustomer: '7日',
+    ltFromGenpoWarehouseToCustomer: '5日',
+    ltFromNaritaToCustomer: '4日',
+    optimalAlternativeParts: 'P001',
+    remarks: '標準品',
+    repairableCategory: '修理可能',
+    minOrderQuantity: '1',
+    shippingUnit: '個',
+    eolCategory: '継続',
+    exportRestrictionCategory: 'なし',
+    globalHazardousFlag: 'N',
+    mainComponent: '金属',
+    itemGroupPackagingSds: 'グループD',
+    heavyObjectFlag: 'Y',
+    createFlag: 'N',
+    autoAllocationPermissionCategory: '可能',
+    serialNumberProfile: 'プロファイル4',
+  },
+  P005: {
+    bu: 'BU3',
+    productCode: 'PC005',
+    partsNumber: 'P005',
+    partsName: '冷却ファンE',
+    unit: '個',
+    signalCode: 'SC005',
+    purchaseItemStatus: '購入不可',
+    category: '冷却',
+    salesStatus: '販売予定',
+    purchasePossibleCategory: '不可',
+    specificCustomerSalesPossibleCategory: '不可',
+    intelFlag: 'N',
+    consumable: 'Y',
+    telCustomerUrl: 'https://example.com/p005',
+    ltFromWarehouseJapanToCustomer: '0日',
+    ltFromFactoryJapanToCustomer: '0日',
+    ltFromGenpoWarehouseToCustomer: '0日',
+    ltFromNaritaToCustomer: '0日',
+    optimalAlternativeParts: 'P002',
+    remarks: '新製品',
+    repairableCategory: '修理不可',
+    minOrderQuantity: '10',
+    shippingUnit: '個',
+    eolCategory: '継続',
+    exportRestrictionCategory: 'なし',
+    globalHazardousFlag: 'N',
+    mainComponent: 'プラスチック',
+    itemGroupPackagingSds: 'グループE',
+    heavyObjectFlag: 'N',
+    createFlag: 'Y',
+    autoAllocationPermissionCategory: '不可',
+    serialNumberProfile: 'プロファイル5',
+  },
 };
 
-const mockPartsData = generateMockParts(30);
-
-// 詳細データ生成
-const generateMockPartsDetail = (partsData: PartsSearchResult[]): Record<string, PartsDetail> => {
-  const detailData: Record<string, PartsDetail> = {};
-  
-  partsData.forEach((part) => {
-    detailData[part.partsNumber] = {
-      bu: part.bu,
-      productCode: `PC${part.partsNumber.slice(1)}`,
-      partsNumber: part.partsNumber,
-      partsName: part.partsName,
-      unit: part.unit,
-      signalCode: part.signalCode,
-      purchaseItemStatus: part.salesStatus === '販売中' ? '購入可能' : '購入不可',
-      category: part.category,
-      salesStatus: part.salesStatus,
-      purchasePossibleCategory: part.salesStatus === '販売中' ? '可能' : '不可',
-      specificCustomerSalesPossibleCategory: part.salesStatus === '販売中' ? '可能' : '不可',
-      intelFlag: part.intelFlag,
-      consumable: part.consumableFlag,
-      telCustomerUrl: 'https://example.com',
-      ltFromWarehouseJapanToCustomer: part.salesStatus === '販売中' ? '3日' : '0日',
-      ltFromFactoryJapanToCustomer: part.salesStatus === '販売中' ? '7日' : '0日',
-      ltFromGenpoWarehouseToCustomer: part.salesStatus === '販売中' ? '5日' : '0日',
-      ltFromNaritaToCustomer: part.salesStatus === '販売中' ? '4日' : '0日',
-      optimalAlternativeParts: part.partsNumber !== 'P001' ? 'P001' : 'P002',
-      remarks: part.remarks,
-      repairableCategory: part.consumableFlag === 'N' ? '修理可能' : '修理不可',
-      minOrderQuantity: part.consumableFlag === 'Y' ? '10' : '1',
-      shippingUnit: part.unit,
-      eolCategory: part.salesStatus === '販売終了' ? 'EOL' : '継続',
-      exportRestrictionCategory: part.intelFlag === 'Y' ? 'あり' : 'なし',
-      globalHazardousFlag: part.intelFlag === 'Y' ? 'Y' : 'N',
-      mainComponent: `主要構成物質${part.partsNumber.slice(1)}`,
-      itemGroupPackagingSds: `グループ${part.partsNumber.slice(1)}`,
-      heavyObjectFlag: parseInt(part.partsNumber.slice(1)) % 5 === 0 ? 'Y' : 'N',
-      createFlag: parseInt(part.partsNumber.slice(1)) % 7 === 0 ? 'Y' : 'N',
-      autoAllocationPermissionCategory: part.salesStatus === '販売中' ? '可能' : '不可',
-      serialNumberProfile: `プロファイル${part.partsNumber.slice(1)}`,
-    };
-  });
-
-  return detailData;
-};
-
-const mockPartsDetailData = generateMockPartsDetail(mockPartsData);
-
-// API関数（モック）
 export const searchParts = async (params: {
   bu?: string;
   partsNumber?: string;
   partsName?: string;
 }): Promise<PartsSearchResult[]> => {
-  // シミュレート用の遅延
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   let results = [...mockPartsData];
 
-  // フィルタリング
   if (params.bu) {
     results = results.filter((item) => item.bu === params.bu);
   }
@@ -168,7 +336,6 @@ export const searchParts = async (params: {
 };
 
 export const getPartsDetail = async (partsNumber: string): Promise<PartsDetail> => {
-  // シミュレート用の遅延
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   const detail = mockPartsDetailData[partsNumber];
@@ -182,10 +349,8 @@ export const getInventoryInfo = async (
   _partsNumber: string,
   region: string
 ): Promise<InventoryInfo[]> => {
-  // シミュレート用の遅延
   await new Promise((resolve) => setTimeout(resolve, 300));
 
-  // モック在庫データ
   return [
     {
       warehouse: `${region}-倉庫1`,
@@ -205,10 +370,8 @@ export const getInventoryInfo = async (
 };
 
 export const getAlternativeParts = async (partsNumber: string): Promise<PartsSearchResult[]> => {
-  // シミュレート用の遅延
   await new Promise((resolve) => setTimeout(resolve, 300));
 
-  // 代替パーツのモックデータ
   const detail = mockPartsDetailData[partsNumber];
   if (!detail || !detail.optimalAlternativeParts) {
     return [];

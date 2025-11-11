@@ -1,47 +1,30 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { ReactNode, CSSProperties } from 'react';
 import { FiX } from 'react-icons/fi';
-import styles from './Modal.module.css';
+import styles from './SidePanel.module.css';
 
-export interface ModalProps {
-  /** モーダルを開くかどうか */
+export interface SidePanelProps {
   isOpen: boolean;
-  /** モーダルを閉じる関数 */
   onClose: () => void;
-  /** モーダルのタイトル */
   title?: string;
-  /** モーダルのコンテンツ */
   children: ReactNode;
-  /** フッターのコンテンツ（ボタンなど） */
-  footer?: ReactNode;
-  /** モーダルのサイズ（small/medium/large またはカスタムCSSProperties） */
-  size?: 'small' | 'medium' | 'large' | CSSProperties;
-  /** 閉じるボタンを表示するか */
-  showCloseButton?: boolean;
-  /** オーバーレイをクリックして閉じるか */
-  closeOnOverlayClick?: boolean;
-  /** ESCキーで閉じるか */
-  closeOnEscape?: boolean;
-  /** カスタムクラス名 */
+  position?: 'left' | 'right';
+  width?: string | number;
   className?: string;
-  /** カスタムスタイル */
   style?: CSSProperties;
 }
 
-export const Modal = ({
+export const SidePanel = ({
   isOpen,
   onClose,
   title,
   children,
-  footer,
-  size = 'medium',
-  showCloseButton = true,
-  closeOnOverlayClick = true,
-  closeOnEscape = true,
+  position = 'right',
+  width = '400px',
   className,
   style,
-}: ModalProps) => {
-  const modalRef = useRef<HTMLDivElement>(null);
+}: SidePanelProps) => {
+  const panelRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
@@ -66,17 +49,12 @@ export const Modal = ({
   }, [isOpen, shouldRender]);
 
   const handleClose = useCallback(() => {
-    if (isClosing) return;
-    setIsClosing(true);
-    timeoutRef.current = setTimeout(() => {
-      setShouldRender(false);
-      setIsClosing(false);
-      onClose();
-    }, 300);
-  }, [onClose, isClosing]);
+    if (isClosing || !isOpen) return;
+    onClose();
+  }, [onClose, isClosing, isOpen]);
 
   useEffect(() => {
-    if (!isOpen || !closeOnEscape || isClosing) return;
+    if (!isOpen || isClosing) return;
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -86,12 +64,11 @@ export const Modal = ({
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, closeOnEscape, isClosing, handleClose]);
+  }, [isOpen, isClosing, handleClose]);
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      setIsClosing(false);
     } else {
       document.body.style.overflow = '';
     }
@@ -105,19 +82,19 @@ export const Modal = ({
   }, [isOpen]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (closeOnOverlayClick && e.target === overlayRef.current && !isClosing) {
+    if (e.target === overlayRef.current && !isClosing) {
       handleClose();
     }
   };
 
   if (!shouldRender) return null;
 
-  const sizeClassName = typeof size === 'string' ? styles[`size-${size}`] : '';
-  const sizeStyle = typeof size === 'object' && size !== null ? size : {};
+  const panelWidth = typeof width === 'number' ? `${width}px` : width;
 
-  const modalClasses = [
-    styles.modal,
-    sizeClassName,
+  const panelClasses = [
+    styles.panel,
+    styles[position],
+    isClosing && styles.closing,
     className,
   ]
     .filter(Boolean)
@@ -130,61 +107,46 @@ export const Modal = ({
     .filter(Boolean)
     .join(' ');
 
-  const modalClassesWithClosing = [
-    modalClasses,
-    isClosing && styles.modalClosing,
-  ]
-    .filter(Boolean)
-    .join(' ');
-
   return (
     <div
       ref={overlayRef}
       className={overlayClasses}
       onClick={handleOverlayClick}
       aria-modal="true"
-      aria-labelledby={title ? 'modal-title' : undefined}
+      aria-labelledby={title ? 'side-panel-title' : undefined}
       role="dialog"
     >
       <div
-        ref={modalRef}
-        className={modalClassesWithClosing}
-        style={{ ...sizeStyle, ...style }}
+        ref={panelRef}
+        className={panelClasses}
+        style={{ width: panelWidth, ...style }}
         onClick={(e) => e.stopPropagation()}
       >
-        {(title || showCloseButton) && (
+        {(title || true) && (
           <div className={styles.header}>
             {title && (
-              <h2 id="modal-title" className={styles.title}>
+              <h2 id="side-panel-title" className={styles.title}>
                 {title}
               </h2>
             )}
-            {showCloseButton && (
-              <button
-                className={styles.closeButton}
-                onClick={handleClose}
-                aria-label="閉じる"
-                type="button"
-              >
-                <FiX aria-hidden="true" />
-              </button>
-            )}
+            <button
+              className={styles.closeButton}
+              onClick={handleClose}
+              aria-label="閉じる"
+              type="button"
+            >
+              <FiX aria-hidden="true" />
+            </button>
           </div>
         )}
 
         <div className={styles.body}>
           {children}
         </div>
-
-        {footer && (
-          <div className={styles.footer}>
-            {footer}
-          </div>
-        )}
       </div>
     </div>
   );
 };
 
-Modal.displayName = 'Modal';
+SidePanel.displayName = 'SidePanel';
 

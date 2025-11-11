@@ -1,6 +1,7 @@
 import { forwardRef, useState, useRef, useEffect } from 'react';
 import type { SelectHTMLAttributes, CSSProperties } from 'react';
 import type { IconType } from 'react-icons';
+import { FaChevronDown } from 'react-icons/fa';
 import styles from './Select.module.css';
 
 export interface SelectOption {
@@ -65,28 +66,24 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const searchInputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // デフォルトサイズ（sizeが指定されていない場合）
     const defaultSizeStyle: CSSProperties = {
       padding: '0.5rem 0.75rem',
       fontSize: '1rem',
       minHeight: '2.5rem',
     };
 
-    // sizeがCSSPropertiesの場合はマージ、文字列の場合はクラス名として扱う
     const sizeStyle = typeof size === 'object' && size !== null
       ? { ...defaultSizeStyle, ...size }
       : defaultSizeStyle;
 
     const sizeClassName = typeof size === 'string' ? styles[`size-${size}`] : '';
 
-    // 検索可能な場合のフィルタリング
     const filteredOptions = searchable && searchTerm
       ? options.filter(option =>
           option.label.toLowerCase().includes(searchTerm.toLowerCase())
         )
       : options;
 
-    // ドロップダウンの位置を計算
     const updateDropdownPosition = () => {
       if (isOpen && wrapperRef.current) {
         const selectButton = wrapperRef.current.querySelector('button');
@@ -107,11 +104,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       updateDropdownPosition();
     }, [isOpen]);
 
-    // スクロール時にドロップダウンを閉じる
     useEffect(() => {
       if (isOpen) {
         const handleScroll = () => {
-          // スクロール時にドロップダウンを閉じる
           setIsOpen(false);
           setSearchTerm('');
         };
@@ -120,7 +115,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           updateDropdownPosition();
         };
         
-        // すべてのスクロール可能な親要素にイベントリスナーを追加
         let parent = wrapperRef.current?.parentElement;
         const scrollElements: Element[] = [];
         while (parent && parent !== document.body) {
@@ -146,7 +140,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       }
     }, [isOpen]);
 
-    // クリックアウトサイドで閉じる
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (
@@ -244,15 +237,16 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 {selectedOption ? selectedOption.label : placeholder || '選択してください'}
               </span>
               {RightIcon && showIcons ? (
-                <RightIcon 
-                  className={`${styles.rightIcon} ${isOpen ? styles.rotated : ''}`} 
-                  aria-hidden="true" 
+                <RightIcon
+                  className={`${styles.rightIcon} ${isOpen ? styles.rotated : ''}`}
+                  aria-hidden="true"
                 />
               ) : (
                 showIcons && (
-                  <span className={`${styles.defaultIcon} ${isOpen ? styles.rotated : ''}`}>
-                    ▼
-                  </span>
+                  <FaChevronDown
+                    className={`${styles.rightIcon} ${isOpen ? styles.rotated : ''}`}
+                    aria-hidden="true"
+                  />
                 )
               )}
             </button>

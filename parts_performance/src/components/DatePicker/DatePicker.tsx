@@ -7,10 +7,8 @@ import { format } from 'date-fns';
 import 'react-datepicker/dist/react-datepicker.css';
 import styles from './DatePicker.module.css';
 
-// 日本語ロケールを登録
 registerLocale('ja', ja);
 
-// カスタム入力コンポーネント
 const CustomInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className, style, ...props }, ref) => {
     return (
@@ -129,7 +127,6 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
     const [isFocused, setIsFocused] = useState(false);
     const [isOpen, setIsOpen] = useState(open ?? false);
 
-    // デフォルトサイズ（sizeが指定されていない場合）
     const defaultSizeStyle: CSSProperties = {
       paddingTop: '0.5rem',
       paddingBottom: '0.5rem',
@@ -137,12 +134,10 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
       minHeight: '2.5rem',
     };
 
-    // sizeがCSSPropertiesの場合はマージ、文字列の場合はクラス名として扱う
     let sizeStyle = typeof size === 'object' && size !== null
       ? { ...defaultSizeStyle, ...size }
       : defaultSizeStyle;
 
-    // paddingが一括指定されている場合、個別のパディングに分解
     if ('padding' in sizeStyle && typeof sizeStyle.padding === 'string') {
       const paddingValue = sizeStyle.padding;
       const parts = paddingValue.split(' ').filter(Boolean);
@@ -170,7 +165,6 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(
       }
     }
 
-    // アイコンがある場合、インラインスタイルからpaddingLeft/paddingRightを削除
     if (LeftIcon && showIcons) {
       if (!('paddingLeft' in sizeStyle) || sizeStyle.paddingLeft === '0.75rem') {
         const { paddingLeft, ...restStyle } = sizeStyle;
