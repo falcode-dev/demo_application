@@ -40,6 +40,12 @@
       "deliveryDatePlaceholder": "日付を選択",
       "customerName": "顧客名",
       "customerNamePlaceholder": "顧客名を入力",
+      "deliveryPriority": "配送の優先度",
+      "deliveryPriorityOptions": {
+        "low": "低",
+        "medium": "中",
+        "high": "高"
+      },
       "deliveryType": "配送タイプ",
       "deliveryTypeOptions": {
         "normal": "通常配送",

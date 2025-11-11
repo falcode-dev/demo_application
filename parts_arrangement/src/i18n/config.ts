@@ -46,6 +46,7 @@ const getLanguageFromXrm = (): string => {
 };
 
 const userLang = getLanguageFromXrm();
+// const userLang = 'en';
 
 i18n
   .use(initReactI18next)

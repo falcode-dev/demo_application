@@ -211,6 +211,7 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
   const [deliveryDate, setDeliveryDate] = useState<Date | null>(null);
   const [customerName, setCustomerName] = useState<string>('');
   const [deliveryType, setDeliveryType] = useState<string>('');
+  const [deliveryPriority, setDeliveryPriority] = useState<string>('');
   const [memo, setMemo] = useState<string>('');
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
@@ -229,6 +230,7 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
       setDeliveryDate(null);
       setCustomerName('');
       setDeliveryType('');
+      setDeliveryPriority('');
       setMemo('');
       setQuantities({});
     }
@@ -257,6 +259,13 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
     { value: 'type1', label: t('partsSearch.orderModal.deliveryTypeOptions.normal') },
     { value: 'type2', label: t('partsSearch.orderModal.deliveryTypeOptions.express') },
     { value: 'type3', label: t('partsSearch.orderModal.deliveryTypeOptions.sameDay') },
+  ];
+
+  const deliveryPriorityOptions: SelectOption[] = [
+    { value: '', label: t('common.select') },
+    { value: 'low', label: t('partsSearch.orderModal.deliveryPriorityOptions.low') },
+    { value: 'medium', label: t('partsSearch.orderModal.deliveryPriorityOptions.medium') },
+    { value: 'high', label: t('partsSearch.orderModal.deliveryPriorityOptions.high') },
   ];
 
   const handleCancel = () => {
@@ -307,6 +316,16 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 placeholder={t('partsSearch.orderModal.customerNamePlaceholder')}
+                fullWidth
+              />
+            </div>
+            <div className={styles.formField}>
+              <Select
+                label={t('partsSearch.orderModal.deliveryPriority')}
+                options={deliveryPriorityOptions}
+                value={deliveryPriority}
+                onChange={(e) => setDeliveryPriority(e.target.value)}
+                placeholder={t('common.select')}
                 fullWidth
               />
             </div>

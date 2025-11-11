@@ -6,50 +6,56 @@
     "update": "Update",
     "loading": "Loading...",
     "searching": "Searching...",
-    "select": "Please select",
+    "select": "-- Select --",
     "cancel": "Cancel",
     "ok": "OK"
   },
   "partsSearch": {
     "title": "Parts Search",
     "bu": "BU",
-    "partsNumber": "Parts Number",
-    "partsNumberPlaceholder": "Enter parts number",
-    "partsName": "Parts Name / Model (English)",
-    "partsNamePlaceholder": "Enter parts name",
+    "partsNumber": "Part No.",
+    "partsNumberPlaceholder": "Enter Part No.",
+    "partsName": "Part Description",
+    "partsNamePlaceholder": "Enter part Name",
     "resultsCount": "Search Results: {{count}} items",
     "noResults": "No search results",
-    "orderButton": "Paid Parts Arrangement",
+    "orderButton": "Billable Parts Order",
     "orderSuccess": "Parts arrangement has been successfully registered",
     "table": {
       "bu": "BU",
-      "partsNumber": "Parts Number",
-      "partsName": "Parts Name / Model (English)",
+      "partsNumber": "Part No.",
+      "partsName": "Part Description",
       "unit": "Unit",
       "signalCode": "Signal Code",
       "salesStatus": "Sales Status",
       "intelFlag": "Intel Flag",
       "consumableFlag": "Consumable Flag",
       "remarks": "Remarks",
-      "category": "Category",
+      "category": "Repairable",
       "quantity": "Quantity"
     },
     "orderModal": {
-      "title": "Create Parts Arrangement",
-      "deliveryDate": "Customer Delivery Date",
+      "title": "Billable Parts Order",
+      "deliveryDate": "Customer Requested Delivery Date",
       "deliveryDatePlaceholder": "Select date",
       "customerName": "Customer Name",
       "customerNamePlaceholder": "Enter customer name",
-      "deliveryType": "Delivery Type",
+      "deliveryPriority": "Order Priority",
+      "deliveryPriorityOptions": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "deliveryType": "Order Type(with work/parts only)",
       "deliveryTypeOptions": {
         "normal": "Normal Delivery",
         "express": "Express",
         "sameDay": "Same Day Delivery"
       },
-      "memo": "Memo",
-      "memoPlaceholder": "Enter memo",
+      "memo": "Notes",
+      "memoPlaceholder": "Enter Notes",
       "selectedParts": "Selected Parts",
-      "confirmButton": "Confirmation Screen"
+      "confirmButton": "OK"
     },
     "confirmModal": {
       "title": "Parts Arrangement Confirmation",
@@ -108,4 +114,3 @@
     }
   }
 }
-
