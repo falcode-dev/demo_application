@@ -20,6 +20,10 @@
     "customerSite": "Customer Site",
     "orderSource": "Order Source",
     "registerSuccess": "{{count}} parts have been registered",
+    "tags": {
+      "requestNumber": "Request Number: Selected",
+      "bu": "BU: Selected"
+    },
     "filterModal": {
       "title": "Edit Filter",
       "bu": "BU",
@@ -47,11 +51,20 @@
     },
     "searchModal": {
       "title": "Parts Search",
+      "requestNumber": "Request Number",
+      "requestNumberPlaceholder": "Enter request number",
+      "ncdrNumber": "NCDR Number",
+      "ncdrNumberPlaceholder": "Enter NCDR number",
       "bu": "BU",
-      "partsNumber": "Parts Number",
-      "partsNumberPlaceholder": "Enter parts number",
-      "partsName": "Parts Name / Model (English)",
-      "partsNamePlaceholder": "Enter parts name",
+      "partsRequester": "Parts Requester",
+      "partsRequesterPlaceholder": "Enter requester name",
+      "partsRequestTeam": "Parts Request Team",
+      "partsRequestTeamPlaceholder": "Enter request team",
+      "customerName": "Customer Name",
+      "customerNamePlaceholder": "Enter customer name",
+      "requestDateFrom": "Parts Request Date From",
+      "requestDateTo": "Parts Request Date To",
+      "requestDatePlaceholder": "Select date",
       "resultsCount": "Search Results: {{count}} items",
       "noResults": "No search results",
       "noSearchCondition": "Please enter search conditions and search"

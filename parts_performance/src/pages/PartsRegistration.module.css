@@ -115,22 +115,16 @@
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-xs, 4px);
-  padding: 6px 12px;
-  background-color: #e0f7fa;
-  color: #006064;
-  border: 1px solid #80deea;
-  border-radius: 16px;
+  padding: 6px 16px;
+  background-color: var(--color-main);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--color-main-hover);
+  border-radius: var(--radius-full);
   font-size: var(--font-size-sm, 13px);
   font-weight: 500;
   cursor: default;
   user-select: none;
   transition: all 0.2s ease;
-}
-
-.tagActive {
-  background-color: #4dd0e1;
-  color: #004d40;
-  border-color: #26c6da;
 }
 
 .tagText {
@@ -139,42 +133,7 @@
 }
 
 .tagClose {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  padding: 2px;
-  margin-left: 4px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  opacity: 0.7;
-}
-
-.tagClose:hover {
-  background-color: rgba(0, 0, 0, 0.08);
-  opacity: 1;
-}
-
-.tagActive .tagClose {
-  color: #004d40;
-  opacity: 0.8;
-}
-
-.tagActive .tagClose:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-  opacity: 1;
-}
-
-.tagClose svg {
-  width: 14px;
-  height: 14px;
-  stroke-width: 2.5;
+  display: none;
 }
 
 .tableContainer {
@@ -546,6 +505,21 @@
   .sectionHeader {
     padding: var(--spacing-sm) 0;
   }
+
+  .searchModalContent {
+    max-height: calc(100vh - 160px);
+    padding: var(--spacing-md);
+  }
+
+  .searchModalContent .tableWrapper {
+    max-height: 50vh;
+  }
+
+  .loadingContainer,
+  .noResults {
+    height: auto;
+    min-height: 0;
+  }
 }
 
 @media (max-width: 480px) {
@@ -581,6 +555,15 @@
   .headerRight>* {
     width: 100%;
   }
+
+  .searchModalContent {
+    max-height: calc(100vh - 120px);
+    padding: var(--spacing-sm);
+  }
+
+  .searchModalContent .tableWrapper {
+    max-height: 45vh;
+  }
 }
 
 /* パーツ検索モーダル用スタイル */
@@ -606,8 +589,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
-  max-height: 70vh;
-  overflow: hidden;
+  max-height: 75vh;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
 }
 
 .searchForm {
@@ -632,9 +616,9 @@
 .buttonRow {
   display: flex;
   gap: var(--spacing-md);
-  justify-content: flex-start;
+  justify-content: flex-end;
+  align-self: flex-end;
   flex-shrink: 0;
-  margin-left: auto;
 }
 
 .loadingContainer {
@@ -642,8 +626,8 @@
   justify-content: center;
   align-items: center;
   flex: 1;
-  height: 450px;
-  min-height: 450px;
+  height: 100%;
+  min-height: 240px;
   padding: var(--spacing-xl);
 }
 
@@ -651,10 +635,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  height: 500px;
-  min-height: 500px;
-  max-height: 500px;
-  overflow: hidden;
+  flex: 1;
+  min-height: 240px;
+  max-height: none;
+  overflow: visible;
 }
 
 .resultsHeader {
@@ -675,9 +659,9 @@
 .searchModalContent .tableWrapper {
   overflow: auto;
   flex: 1;
-  height: 450px;
-  min-height: 450px;
-  max-height: 450px;
+  max-height: 45vh;
+  height: auto;
+  min-height: 0;
 }
 
 .searchModalContent .tableWrapper::-webkit-scrollbar {
@@ -770,8 +754,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 450px;
-  min-height: 450px;
+  height: 100%;
+  min-height: 240px;
 }
 
 .modalFooter {

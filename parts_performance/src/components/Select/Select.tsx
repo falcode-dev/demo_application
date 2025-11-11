@@ -33,6 +33,8 @@ export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement
   fullWidth?: boolean;
   /** 検索可能かどうか */
   searchable?: boolean;
+  /** 右側アイコンの回転を無効化 */
+  disableRightIconRotation?: boolean;
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
@@ -49,6 +51,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       helpText,
       fullWidth = false,
       searchable = false,
+      disableRightIconRotation = false,
       className,
       disabled,
       value,
@@ -238,7 +241,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               </span>
               {RightIcon && showIcons ? (
                 <RightIcon
-                  className={`${styles.rightIcon} ${isOpen ? styles.rotated : ''}`}
+                  className={[
+                    styles.rightIcon,
+                    !disableRightIconRotation && isOpen ? styles.rotated : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
                   aria-hidden="true"
                 />
               ) : (

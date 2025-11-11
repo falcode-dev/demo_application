@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Select, Modal, Input, Spinner, SidePanel } from '../components';
+import { Button, Select, Modal, Input, Spinner, DatePicker } from '../components';
 import type { SelectOption } from '../components';
-import { searchParts, buOptions, customerSiteOptions, orderSourceOptions, type PartsSearchResult } from '../services/mockData';
+import {
+  searchParts,
+  customerNameOptions,
+  partsRequestTeamOptions,
+  type PartsSearchResult,
+} from '../services/mockData';
 import { openPartsDetail } from '../utils/navigation';
 import { useToastContext } from '../contexts/ToastContext';
-import { FiX, FiFilter } from 'react-icons/fi';
 import styles from './PartsRegistration.module.css';
+import { FiCalendar, FiSearch } from 'react-icons/fi';
 
 interface RegistrationRow extends PartsSearchResult {
   checked: boolean;
@@ -26,22 +31,9 @@ interface RegistrationRow extends PartsSearchResult {
 export const PartsRegistration = () => {
   const { t } = useTranslation();
   const { success } = useToastContext();
-  const [upperBu, setUpperBu] = useState<string>('');
-  const [upperCustomerSite, setUpperCustomerSite] = useState<string>('');
-  const [upperOrderSource, setUpperOrderSource] = useState<string>('');
   const [allResults, setAllResults] = useState<RegistrationRow[]>([]);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false);
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState<boolean>(false);
-  const [tempBu, setTempBu] = useState<string>('');
-  const [tempCustomerSite, setTempCustomerSite] = useState<string>('');
-  const [tempOrderSource, setTempOrderSource] = useState<string>('');
-
-  const results = allResults.filter((item) => {
-    if (upperBu && item.bu !== upperBu) return false;
-    if (upperCustomerSite && item.customerSite !== upperCustomerSite) return false;
-    if (upperOrderSource && item.orderSource !== upperOrderSource) return false;
-    return true;
-  });
+  const results = allResults;
 
   const handleOpenSearchModal = () => {
     setIsSearchModalOpen(true);
@@ -49,34 +41,6 @@ export const PartsRegistration = () => {
 
   const handleCloseSearchModal = () => {
     setIsSearchModalOpen(false);
-  };
-
-  const handleOpenFilterPanel = () => {
-    setTempBu(upperBu);
-    setTempCustomerSite(upperCustomerSite);
-    setTempOrderSource(upperOrderSource);
-    setIsFilterPanelOpen(true);
-  };
-
-  const handleCloseFilterPanel = () => {
-    setIsFilterPanelOpen(false);
-  };
-
-  const handleApplyFilter = () => {
-    setUpperBu(tempBu);
-    setUpperCustomerSite(tempCustomerSite);
-    setUpperOrderSource(tempOrderSource);
-    setIsFilterPanelOpen(false);
-  };
-
-  const handleClearFilter = (type: 'bu' | 'customerSite' | 'orderSource') => {
-    if (type === 'bu') {
-      setUpperBu('');
-    } else if (type === 'customerSite') {
-      setUpperCustomerSite('');
-    } else if (type === 'orderSource') {
-      setUpperOrderSource('');
-    }
   };
 
   const billingCategoryOptions: SelectOption[] = [
@@ -92,19 +56,11 @@ export const PartsRegistration = () => {
       if (item.isDisabled) {
         return item;
       }
-      const matchesFilter =
-        (!upperBu || item.bu === upperBu) &&
-        (!upperCustomerSite || item.customerSite === upperCustomerSite) &&
-        (!upperOrderSource || item.orderSource === upperOrderSource);
-
-      if (matchesFilter) {
-        return {
-          ...item,
-          checked: !allChecked,
-          hasError: false,
-        };
-      }
-      return item;
+      return {
+        ...item,
+        checked: !allChecked,
+        hasError: false,
+      };
     });
     setAllResults(newResults);
   };
@@ -179,15 +135,6 @@ export const PartsRegistration = () => {
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>{t('partsRegistration.title')}</h2>
           <div className={styles.headerRight}>
-            <button
-              className={styles.filterButton}
-              onClick={handleOpenFilterPanel}
-              disabled={allResults.length === 0}
-              aria-label={t('partsRegistration.editFilterButton')}
-            >
-              <FiFilter />
-              <span className={styles.filterButtonText}>{t('partsRegistration.editFilterButton')}</span>
-            </button>
             <Button
               variant="default"
               onClick={handleOpenSearchModal}
@@ -198,54 +145,12 @@ export const PartsRegistration = () => {
         </div>
 
         <div className={styles.tagsContainer}>
-          {upperBu && (
-            <div className={`${styles.tag} ${styles.tagActive}`}>
-              <span className={styles.tagText}>{t('partsRegistration.bu')}：{upperBu}</span>
-              <button
-                type="button"
-                className={styles.tagClose}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClearFilter('bu');
-                }}
-                aria-label="BUタグを削除"
-              >
-                <FiX />
-              </button>
-            </div>
-          )}
-          {upperCustomerSite && (
-            <div className={`${styles.tag} ${styles.tagActive}`}>
-              <span className={styles.tagText}>{t('partsRegistration.customerSite')}：{upperCustomerSite}</span>
-              <button
-                type="button"
-                className={styles.tagClose}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClearFilter('customerSite');
-                }}
-                aria-label="顧客拠点タグを削除"
-              >
-                <FiX />
-              </button>
-            </div>
-          )}
-          {upperOrderSource && (
-            <div className={`${styles.tag} ${styles.tagActive}`}>
-              <span className={styles.tagText}>{t('partsRegistration.orderSource')}：{upperOrderSource}</span>
-              <button
-                type="button"
-                className={styles.tagClose}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClearFilter('orderSource');
-                }}
-                aria-label="オーダ元タグを削除"
-              >
-                <FiX />
-              </button>
-            </div>
-          )}
+          <div className={styles.tag}>
+            <span className={styles.tagText}>{t('partsRegistration.tags.requestNumber')}</span>
+          </div>
+          <div className={styles.tag}>
+            <span className={styles.tagText}>{t('partsRegistration.tags.bu')}</span>
+          </div>
         </div>
 
         <div className={styles.tableContainer}>
@@ -346,18 +251,6 @@ export const PartsRegistration = () => {
         </div>
       </div>
 
-      <FilterPanel
-        isOpen={isFilterPanelOpen}
-        onClose={handleCloseFilterPanel}
-        bu={tempBu}
-        customerSite={tempCustomerSite}
-        orderSource={tempOrderSource}
-        onBuChange={setTempBu}
-        onCustomerSiteChange={setTempCustomerSite}
-        onOrderSourceChange={setTempOrderSource}
-        onApply={handleApplyFilter}
-      />
-
       <PartsSearchModal
         isOpen={isSearchModalOpen}
         onClose={handleCloseSearchModal}
@@ -369,8 +262,6 @@ export const PartsRegistration = () => {
             billingCategory: '',
             hasError: false,
             isDisabled: false,
-            customerSite: upperCustomerSite || undefined,
-            orderSource: upperOrderSource || undefined,
           }));
           setAllResults([...allResults, ...newRows]);
           success(t('partsRegistration.registerSuccess', { count: selectedParts.length }));
@@ -378,100 +269,6 @@ export const PartsRegistration = () => {
         onCloseModal={handleCloseSearchModal}
       />
     </div>
-  );
-};
-
-interface FilterPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
-  bu: string;
-  customerSite: string;
-  orderSource: string;
-  onBuChange: (value: string) => void;
-  onCustomerSiteChange: (value: string) => void;
-  onOrderSourceChange: (value: string) => void;
-  onApply: () => void;
-}
-
-const FilterPanel = ({
-  isOpen,
-  onClose,
-  bu,
-  customerSite,
-  orderSource,
-  onBuChange,
-  onCustomerSiteChange,
-  onOrderSourceChange,
-  onApply,
-}: FilterPanelProps) => {
-  const { t } = useTranslation();
-
-  const buOptionsWithEmpty: SelectOption[] = [
-    { value: '', label: t('common.select') },
-    ...buOptions,
-  ];
-
-  const customerSiteOptionsWithEmpty: SelectOption[] = [
-    { value: '', label: t('common.select') },
-    ...customerSiteOptions,
-  ];
-
-  const orderSourceOptionsWithEmpty: SelectOption[] = [
-    { value: '', label: t('common.select') },
-    ...orderSourceOptions,
-  ];
-
-  return (
-    <SidePanel
-      isOpen={isOpen}
-      onClose={onClose}
-      title={t('partsRegistration.filterModal.title')}
-      position="right"
-      width="400px"
-    >
-      <div className={styles.filterPanelContent}>
-        <div className={styles.formRow}>
-          <div className={styles.formField}>
-            <Select
-              label={t('partsRegistration.filterModal.bu')}
-              options={buOptionsWithEmpty}
-              value={bu}
-              onChange={(e) => onBuChange(e.target.value)}
-              placeholder={t('common.select')}
-              fullWidth
-            />
-          </div>
-          <div className={styles.formField}>
-            <Select
-              label={t('partsRegistration.filterModal.customerSite')}
-              options={customerSiteOptionsWithEmpty}
-              value={customerSite}
-              onChange={(e) => onCustomerSiteChange(e.target.value)}
-              placeholder={t('common.select')}
-              fullWidth
-            />
-          </div>
-          <div className={styles.formField}>
-            <Select
-              label={t('partsRegistration.filterModal.orderSource')}
-              options={orderSourceOptionsWithEmpty}
-              value={orderSource}
-              onChange={(e) => onOrderSourceChange(e.target.value)}
-              placeholder={t('common.select')}
-              fullWidth
-            />
-          </div>
-        </div>
-        <div className={styles.filterPanelFooter}>
-          <Button variant="sub" onClick={onClose} fullWidth>
-            {t('common.cancel')}
-          </Button>
-          <Button variant="default" onClick={onApply} fullWidth>
-            {t('common.ok')}
-          </Button>
-        </div>
-      </div>
-    </SidePanel>
   );
 };
 
@@ -484,9 +281,15 @@ interface PartsSearchModalProps {
 
 const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSearchModalProps) => {
   const { t } = useTranslation();
-  const [bu, setBu] = useState<string>('');
-  const [partsNumber, setPartsNumber] = useState<string>('');
-  const [partsName, setPartsName] = useState<string>('');
+  const bu = 'BU1';
+  const buOptionsForDisplay: SelectOption[] = [{ value: bu, label: bu }];
+  const [requestNumber, setRequestNumber] = useState<string>('');
+  const [ncdrNumber, setNcdrNumber] = useState<string>('');
+  const [partsRequester, setPartsRequester] = useState<string>('');
+  const [partsRequestTeam, setPartsRequestTeam] = useState<string>('');
+  const [customerName, setCustomerName] = useState<string>('');
+  const [requestDateFrom, setRequestDateFrom] = useState<Date | null>(null);
+  const [requestDateTo, setRequestDateTo] = useState<Date | null>(null);
   const [results, setResults] = useState<PartsSearchResult[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
@@ -498,21 +301,33 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
       setHasSearched(false);
       setResults([]);
       setSelectedParts(new Set());
-      setBu('');
-      setPartsNumber('');
-      setPartsName('');
+      setRequestNumber('');
+      setNcdrNumber('');
+      setPartsRequester('');
+      setPartsRequestTeam('');
+      setCustomerName('');
+      setRequestDateFrom(null);
+      setRequestDateTo(null);
       setLoading(false);
+      setIsRegistering(false);
     }
   }, [isOpen]);
+
+  const handleRequestDateFromChange = (date: Date | null) => {
+    setRequestDateFrom(date);
+    if (date && requestDateTo && date > requestDateTo) {
+      setRequestDateTo(null);
+    }
+  };
 
   const handleSearch = async () => {
     setLoading(true);
     setHasSearched(true);
     try {
       const searchResults = await searchParts({
-        bu: bu || undefined,
-        partsNumber: partsNumber || undefined,
-        partsName: partsName || undefined,
+        bu,
+        partsNumber: requestNumber || undefined,
+        partsName: ncdrNumber || undefined,
       });
       setResults(searchResults);
     } catch (error) {
@@ -527,9 +342,13 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
     setHasSearched(false);
     setResults([]);
     setSelectedParts(new Set());
-    setBu('');
-    setPartsNumber('');
-    setPartsName('');
+    setRequestNumber('');
+    setNcdrNumber('');
+    setPartsRequester('');
+    setPartsRequestTeam('');
+    setCustomerName('');
+    setRequestDateFrom(null);
+    setRequestDateTo(null);
     setLoading(false);
   };
 
@@ -596,38 +415,101 @@ const PartsSearchModal = ({ isOpen, onClose, onRegister, onCloseModal }: PartsSe
         <div className={styles.searchForm}>
           <div className={styles.formRow}>
             <div className={styles.formField}>
+              <Input
+                label={t('partsRegistration.searchModal.requestNumber')}
+                value={requestNumber}
+                onChange={(e) => setRequestNumber(e.target.value)}
+                placeholder={t('partsRegistration.searchModal.requestNumberPlaceholder')}
+              />
+            </div>
+            <div className={styles.formField}>
+              <Input
+                label={t('partsRegistration.searchModal.ncdrNumber')}
+                value={ncdrNumber}
+                onChange={(e) => setNcdrNumber(e.target.value)}
+                placeholder={t('partsRegistration.searchModal.ncdrNumberPlaceholder')}
+              />
+            </div>
+          </div>
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
               <Select
                 label={t('partsRegistration.searchModal.bu')}
-                options={buOptions as SelectOption[]}
+                options={buOptionsForDisplay}
                 value={bu}
-                onChange={(e) => setBu(e.target.value)}
+                disabled
+              />
+            </div>
+            <div className={styles.formField}>
+              <Input
+                label={t('partsRegistration.searchModal.partsRequester')}
+                value={partsRequester}
+                onChange={(e) => setPartsRequester(e.target.value)}
+                placeholder={t('partsRegistration.searchModal.partsRequesterPlaceholder')}
+              />
+            </div>
+            <div className={styles.formField}>
+              <Select
+                label={t('partsRegistration.searchModal.partsRequestTeam')}
+                options={partsRequestTeamOptions as SelectOption[]}
+                value={partsRequestTeam}
+                onChange={(e) => setPartsRequestTeam(e.target.value)}
                 placeholder={t('common.select')}
+                rightIcon={FiSearch}
+                disableRightIconRotation
+                fullWidth
+              />
+            </div>
+          </div>
+          <div className={styles.formRow}>
+            <div className={styles.formField}>
+              <Select
+                label={t('partsRegistration.searchModal.customerName')}
+                options={customerNameOptions as SelectOption[]}
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder={t('common.select')}
+                rightIcon={FiSearch}
+                disableRightIconRotation
+                fullWidth
               />
             </div>
             <div className={styles.formField}>
-              <Input
-                label={t('partsRegistration.searchModal.partsNumber')}
-                value={partsNumber}
-                onChange={(e) => setPartsNumber(e.target.value)}
-                placeholder={t('partsRegistration.searchModal.partsNumberPlaceholder')}
+              <DatePicker
+                label={t('partsRegistration.searchModal.requestDateFrom')}
+                value={requestDateFrom}
+                onChange={handleRequestDateFromChange}
+                startDate={requestDateFrom ?? undefined}
+                endDate={requestDateTo ?? undefined}
+                selectsStart
+                maxDate={requestDateTo ?? undefined}
+                placeholder={t('partsRegistration.searchModal.requestDatePlaceholder')}
+                leftIcon={FiCalendar}
+                fullWidth
               />
             </div>
             <div className={styles.formField}>
-              <Input
-                label={t('partsRegistration.searchModal.partsName')}
-                value={partsName}
-                onChange={(e) => setPartsName(e.target.value)}
-                placeholder={t('partsRegistration.searchModal.partsNamePlaceholder')}
+              <DatePicker
+                label={t('partsRegistration.searchModal.requestDateTo')}
+                value={requestDateTo}
+                onChange={setRequestDateTo}
+                startDate={requestDateFrom ?? undefined}
+                endDate={requestDateTo ?? undefined}
+                selectsEnd
+                minDate={requestDateFrom ?? undefined}
+                placeholder={t('partsRegistration.searchModal.requestDatePlaceholder')}
+                leftIcon={FiCalendar}
+                fullWidth
               />
             </div>
-            <div className={styles.buttonRow}>
-              <Button variant="default" onClick={handleSearch} disabled={loading}>
-                {t('common.search')}
-              </Button>
-              <Button variant="sub" onClick={handleReset} disabled={loading}>
-                {t('common.reset')}
-              </Button>
-            </div>
+          </div>
+          <div className={styles.buttonRow}>
+            <Button variant="default" onClick={handleSearch} disabled={loading}>
+              {t('common.search')}
+            </Button>
+            <Button variant="sub" onClick={handleReset} disabled={loading}>
+              {t('common.reset')}
+            </Button>
           </div>
         </div>
 

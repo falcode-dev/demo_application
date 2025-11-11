@@ -73,6 +73,18 @@ export const orderSourceOptions = [
   { value: 'オーダ元3', label: 'オーダ元3' },
 ];
 
+export const partsRequestTeamOptions = [
+  { value: 'teamA', label: 'チームA' },
+  { value: 'teamB', label: 'チームB' },
+  { value: 'teamC', label: 'チームC' },
+];
+
+export const customerNameOptions = [
+  { value: '顧客名1', label: '顧客名1' },
+  { value: '顧客名2', label: '顧客名2' },
+  { value: '顧客名3', label: '顧客名3' },
+];
+
 const mockPartsData: PartsSearchResult[] = [
   {
     bu: 'BU1',

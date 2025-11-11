@@ -13,13 +13,17 @@
     "notSelected": "未選択"
   },
   "partsRegistration": {
-    "title": "パーツ実績登録（事前受注・FE手配・マイグレ）",
+    "title": "パーツ実績登録（事前受注・FE手配）",
     "searchButton": "パーツ検索",
     "editFilterButton": "フィルターを編集する",
     "bu": "BU",
     "customerSite": "顧客拠点",
     "orderSource": "オーダ元",
     "registerSuccess": "{{count}}件のパーツが登録されました",
+    "tags": {
+      "requestNumber": "リクエスト番号：選択",
+      "bu": "BU：選択"
+    },
     "filterModal": {
       "title": "フィルターを編集する",
       "bu": "BU",
@@ -47,11 +51,20 @@
     },
     "searchModal": {
       "title": "パーツ検索",
+      "requestNumber": "リクエスト番号",
+      "requestNumberPlaceholder": "リクエスト番号を入力",
+      "ncdrNumber": "NCDR番号",
+      "ncdrNumberPlaceholder": "NCDR番号を入力",
       "bu": "BU",
-      "partsNumber": "パーツ番号",
-      "partsNumberPlaceholder": "パーツ番号を入力",
-      "partsName": "パーツ名称／型式（英）",
-      "partsNamePlaceholder": "パーツ名称を入力",
+      "partsRequester": "パーツリクエスト者",
+      "partsRequesterPlaceholder": "氏名を入力",
+      "partsRequestTeam": "パーツリクエストチーム",
+      "partsRequestTeamPlaceholder": "チーム名を入力",
+      "customerName": "顧客名",
+      "customerNamePlaceholder": "顧客名を入力",
+      "requestDateFrom": "パーツリクエスト日 From",
+      "requestDateTo": "パーツリクエスト日 To",
+      "requestDatePlaceholder": "日付を選択",
       "resultsCount": "検索結果: {{count}}件",
       "noResults": "検索結果がありません",
       "noSearchCondition": "検索条件を入力して検索してください"
