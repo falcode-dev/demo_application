@@ -9,6 +9,14 @@ export interface PartsSearchResult {
   consumableFlag: string;
   remarks: string;
   category: string;
+  ncdrNumber: string;
+  requestNumber: string;
+  soNumber: string;
+  requester: string;
+  station: string;
+  customerName: string;
+  orderDate: string;
+  orderSource: string;
 }
 
 export interface PartsDetail {
@@ -62,27 +70,27 @@ export const buOptions = [
 ];
 
 export const customerSiteOptions = [
-  { value: '顧客拠点1', label: '顧客拠点1' },
-  { value: '顧客拠点2', label: '顧客拠点2' },
-  { value: '顧客拠点3', label: '顧客拠点3' },
+  { value: 'Customer Site 1', label: 'Customer Site 1' },
+  { value: 'Customer Site 2', label: 'Customer Site 2' },
+  { value: 'Customer Site 3', label: 'Customer Site 3' },
 ];
 
 export const orderSourceOptions = [
-  { value: 'オーダ元1', label: 'オーダ元1' },
-  { value: 'オーダ元2', label: 'オーダ元2' },
-  { value: 'オーダ元3', label: 'オーダ元3' },
+  { value: 'Order Source 1', label: 'Order Source 1' },
+  { value: 'Order Source 2', label: 'Order Source 2' },
+  { value: 'Order Source 3', label: 'Order Source 3' },
 ];
 
 export const partsRequestTeamOptions = [
-  { value: 'teamA', label: 'チームA' },
-  { value: 'teamB', label: 'チームB' },
-  { value: 'teamC', label: 'チームC' },
+  { value: 'teamA', label: 'Team A' },
+  { value: 'teamB', label: 'Team B' },
+  { value: 'teamC', label: 'Team C' },
 ];
 
 export const customerNameOptions = [
-  { value: '顧客名1', label: '顧客名1' },
-  { value: '顧客名2', label: '顧客名2' },
-  { value: '顧客名3', label: '顧客名3' },
+  { value: 'Customer 1', label: 'Customer 1' },
+  { value: 'Customer 2', label: 'Customer 2' },
+  { value: 'Customer 3', label: 'Customer 3' },
 ];
 
 const mockPartsData: PartsSearchResult[] = [
@@ -97,6 +105,14 @@ const mockPartsData: PartsSearchResult[] = [
     consumableFlag: 'N',
     remarks: '標準品',
     category: '電子部品',
+    ncdrNumber: 'NCDR-0001',
+    requestNumber: 'REQ-1001',
+    soNumber: 'SO-5001',
+    requester: 'Taro Yamada',
+    station: 'Station A',
+    customerName: 'Customer 1',
+    orderDate: '2025-01-05',
+    orderSource: 'Order Source 1',
   },
   {
     bu: 'BU1',
@@ -109,6 +125,14 @@ const mockPartsData: PartsSearchResult[] = [
     consumableFlag: 'Y',
     remarks: '消耗品',
     category: 'ケーブル',
+    ncdrNumber: 'NCDR-0002',
+    requestNumber: 'REQ-1002',
+    soNumber: 'SO-5002',
+    requester: 'Hanako Sato',
+    station: 'Station B',
+    customerName: 'Customer 2',
+    orderDate: '2025-01-12',
+    orderSource: 'Order Source 2',
   },
   {
     bu: 'BU2',
@@ -121,6 +145,14 @@ const mockPartsData: PartsSearchResult[] = [
     consumableFlag: 'N',
     remarks: '旧型',
     category: 'モジュール',
+    ncdrNumber: 'NCDR-0003',
+    requestNumber: 'REQ-1003',
+    soNumber: 'SO-5003',
+    requester: 'Ichiro Takahashi',
+    station: 'Station C',
+    customerName: 'Customer 3',
+    orderDate: '2025-02-01',
+    orderSource: 'Order Source 3',
   },
   {
     bu: 'BU2',
@@ -133,6 +165,14 @@ const mockPartsData: PartsSearchResult[] = [
     consumableFlag: 'N',
     remarks: '標準品',
     category: '電源',
+    ncdrNumber: 'NCDR-0004',
+    requestNumber: 'REQ-1004',
+    soNumber: 'SO-5004',
+    requester: 'Jiro Suzuki',
+    station: 'Station D',
+    customerName: 'Customer 1',
+    orderDate: '2025-02-08',
+    orderSource: 'Order Source 1',
   },
   {
     bu: 'BU3',
@@ -145,6 +185,14 @@ const mockPartsData: PartsSearchResult[] = [
     consumableFlag: 'Y',
     remarks: '新製品',
     category: '冷却',
+    ncdrNumber: 'NCDR-0005',
+    requestNumber: 'REQ-1005',
+    soNumber: 'SO-5005',
+    requester: 'Saburo Tanaka',
+    station: 'Station E',
+    customerName: 'Customer 2',
+    orderDate: '2025-03-15',
+    orderSource: 'Order Source 2',
   },
 ];
 

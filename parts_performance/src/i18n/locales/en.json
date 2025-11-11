@@ -13,7 +13,7 @@
     "notSelected": "Not Selected"
   },
   "partsRegistration": {
-    "title": "Parts Performance Registration (Pre-order, FE Arrangement, Migration)",
+    "title": "Parts Installed",
     "searchButton": "Parts Search",
     "editFilterButton": "Edit Filter",
     "bu": "BU",
@@ -33,7 +33,7 @@
     "table": {
       "bu": "BU",
       "partsNumber": "Parts Number",
-      "partsName": "Parts Name / Model (English)",
+      "partsName": "Part Description",
       "consumptionQuantity": "Consumption Quantity",
       "billingCategory": "Billing Category",
       "unit": "Unit",
@@ -43,6 +43,21 @@
       "consumableFlag": "Consumable Flag",
       "remarks": "Remarks",
       "category": "Category"
+    },
+    "listTable": {
+      "bu": "BU",
+      "partsNumber": "Part No.",
+      "partsName": "Part Description",
+      "installedQty": "Installed QTY",
+      "billingType": "Billing Type",
+      "ncdrNumber": "NCDR No.",
+      "requestNumber": "Request No.",
+      "soNumber": "SO No.",
+      "requester": "Requester",
+      "station": "Station",
+      "customerName": "Customer Name",
+      "orderDate": "Order Date",
+      "orderSource": "Order Source"
     },
     "billingCategory": {
       "paid": "Paid",
@@ -89,7 +104,7 @@
       "bu": "BU",
       "productCode": "Product Code",
       "partsNumber": "Parts Number",
-      "partsName": "Parts Name / Model (English)",
+      "partsName": "Part Description",
       "unit": "Unit",
       "signalCode": "Signal Code",
       "purchaseItemStatus": "Purchase Item Status",
@@ -121,4 +136,3 @@
     }
   }
 }
-

@@ -23,8 +23,6 @@ interface RegistrationRow extends PartsSearchResult {
   quantityError?: boolean;
   billingCategoryError?: boolean;
   partsCategoryError?: boolean;
-  customerSite?: string;
-  orderSource?: string;
 }
 
 
@@ -169,18 +167,19 @@ export const PartsRegistration = () => {
                       <span className={styles.checkboxCustom}></span>
                     </label>
                   </th>
-                  <th>{t('partsRegistration.table.bu')}</th>
-                  <th>{t('partsRegistration.table.partsNumber')}</th>
-                  <th>{t('partsRegistration.table.partsName')}</th>
-                  <th className={styles.quantityColumn}>{t('partsRegistration.table.consumptionQuantity')}</th>
-                  <th className={styles.billingColumn}>{t('partsRegistration.table.billingCategory')}</th>
-                  <th>{t('partsRegistration.table.unit')}</th>
-                  <th>{t('partsRegistration.table.signalCode')}</th>
-                  <th>{t('partsRegistration.table.salesStatus')}</th>
-                  <th>{t('partsRegistration.table.intelFlag')}</th>
-                  <th>{t('partsRegistration.table.consumableFlag')}</th>
-                  <th>{t('partsRegistration.table.remarks')}</th>
-                  <th>{t('partsRegistration.table.category')}</th>
+                  <th>{t('partsRegistration.listTable.bu')}</th>
+                  <th>{t('partsRegistration.listTable.partsNumber')}</th>
+                  <th>{t('partsRegistration.listTable.partsName')}</th>
+                  <th className={styles.quantityColumn}>{t('partsRegistration.listTable.installedQty')}</th>
+                  <th className={styles.billingColumn}>{t('partsRegistration.listTable.billingType')}</th>
+                  <th>{t('partsRegistration.listTable.ncdrNumber')}</th>
+                  <th>{t('partsRegistration.listTable.requestNumber')}</th>
+                  <th>{t('partsRegistration.listTable.soNumber')}</th>
+                  <th>{t('partsRegistration.listTable.requester')}</th>
+                  <th>{t('partsRegistration.listTable.station')}</th>
+                  <th>{t('partsRegistration.listTable.customerName')}</th>
+                  <th>{t('partsRegistration.listTable.orderDate')}</th>
+                  <th>{t('partsRegistration.listTable.orderSource')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -236,13 +235,14 @@ export const PartsRegistration = () => {
                         style={{ minWidth: '120px' }}
                       />
                     </td>
-                    <td>{item.unit}</td>
-                    <td>{item.signalCode}</td>
-                    <td>{item.salesStatus}</td>
-                    <td>{item.intelFlag}</td>
-                    <td>{item.consumableFlag}</td>
-                    <td>{item.remarks}</td>
-                    <td>{item.category}</td>
+                    <td>{item.ncdrNumber}</td>
+                    <td>{item.requestNumber}</td>
+                    <td>{item.soNumber}</td>
+                    <td>{item.requester}</td>
+                    <td>{item.station}</td>
+                    <td>{item.customerName}</td>
+                    <td>{item.orderDate}</td>
+                    <td>{item.orderSource}</td>
                   </tr>
                 ))}
               </tbody>

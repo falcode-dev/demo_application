@@ -44,6 +44,21 @@
       "remarks": "備考",
       "category": "区分"
     },
+    "listTable": {
+      "bu": "BU",
+      "partsNumber": "パーツ番号",
+      "partsName": "パーツ名称／型式（英）",
+      "installedQty": "消費数量",
+      "billingType": "請求区分",
+      "ncdrNumber": "NCDR番号",
+      "requestNumber": "有償発注番号",
+      "soNumber": "SO番号",
+      "requester": "手配者",
+      "station": "ステーション",
+      "customerName": "顧客名",
+      "orderDate": "手配日",
+      "orderSource": "オーダ元"
+    },
     "billingCategory": {
       "paid": "有償",
       "free": "無償",
@@ -121,4 +136,3 @@
     }
   }
 }
-
