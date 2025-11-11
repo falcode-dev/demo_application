@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { Button, Select, Modal, Input, SidePanel } from '../components';
+import { Button, Select, Modal, Input } from '../components';
 import type { SelectOption } from '../components';
 import type { PartsSearchResult } from '../services/mockData';
 import { openPartsDetail } from '../utils/navigation';
 import { useToastContext } from '../contexts/ToastContext';
-import { buOptions, customerSiteOptions, orderSourceOptions } from '../services/mockData';
-import { FiX, FiFilter } from 'react-icons/fi';
 import styles from './PartsRegistration.module.css';
 
 interface RegistrationRow extends PartsSearchResult {
@@ -24,23 +22,11 @@ interface RegistrationRow extends PartsSearchResult {
 
 export const PartsRegistration = () => {
   const { success } = useToastContext();
-  const [upperBu, setUpperBu] = useState<string>('');
-  const [upperCustomerSite, setUpperCustomerSite] = useState<string>('');
-  const [upperOrderSource, setUpperOrderSource] = useState<string>('');
   const [allResults, setAllResults] = useState<RegistrationRow[]>([]);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState<boolean>(false);
-  const [tempBu, setTempBu] = useState<string>('');
-  const [tempCustomerSite, setTempCustomerSite] = useState<string>('');
-  const [tempOrderSource, setTempOrderSource] = useState<string>('');
 
-  const results = allResults.filter((item) => {
-    if (upperBu && item.bu !== upperBu) return false;
-    if (upperCustomerSite && item.customerSite !== upperCustomerSite) return false;
-    if (upperOrderSource && item.orderSource !== upperOrderSource) return false;
-    return true;
-  });
+  const results = allResults;
 
   const handleOpenRequestModal = () => {
     setIsRequestModalOpen(true);
@@ -48,34 +34,6 @@ export const PartsRegistration = () => {
 
   const handleCloseRequestModal = () => {
     setIsRequestModalOpen(false);
-  };
-
-  const handleOpenFilterPanel = () => {
-    setTempBu(upperBu);
-    setTempCustomerSite(upperCustomerSite);
-    setTempOrderSource(upperOrderSource);
-    setIsFilterPanelOpen(true);
-  };
-
-  const handleCloseFilterPanel = () => {
-    setIsFilterPanelOpen(false);
-  };
-
-  const handleApplyFilter = () => {
-    setUpperBu(tempBu);
-    setUpperCustomerSite(tempCustomerSite);
-    setUpperOrderSource(tempOrderSource);
-    setIsFilterPanelOpen(false);
-  };
-
-  const handleClearFilter = (type: 'bu' | 'customerSite' | 'orderSource') => {
-    if (type === 'bu') {
-      setUpperBu('');
-    } else if (type === 'customerSite') {
-      setUpperCustomerSite('');
-    } else if (type === 'orderSource') {
-      setUpperOrderSource('');
-    }
   };
 
   const billingCategoryOptions: SelectOption[] = [
@@ -98,19 +56,11 @@ export const PartsRegistration = () => {
       if (item.isDisabled) {
         return item;
       }
-      const matchesFilter =
-        (!upperBu || item.bu === upperBu) &&
-        (!upperCustomerSite || item.customerSite === upperCustomerSite) &&
-        (!upperOrderSource || item.orderSource === upperOrderSource);
-
-      if (matchesFilter) {
-        return {
-          ...item,
-          checked: !allChecked,
-          hasError: false,
-        };
-      }
-      return item;
+      return {
+        ...item,
+        checked: !allChecked,
+        hasError: false,
+      };
     });
     setAllResults(newResults);
   };
@@ -202,73 +152,13 @@ export const PartsRegistration = () => {
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>パーツ実績登録（顧客提供・預託在庫）</h2>
           <div className={styles.headerRight}>
-            <button
-              className={styles.filterButton}
-              onClick={handleOpenFilterPanel}
-              disabled={allResults.length === 0}
-              aria-label="フィルターを編集する"
-            >
-              <FiFilter />
-              <span className={styles.filterButtonText}>フィルターを編集する</span>
-            </button>
             <Button
               variant="default"
               onClick={handleOpenRequestModal}
             >
-              パーツリクエスト登録
+              パーツ実績登録
             </Button>
           </div>
-        </div>
-
-        <div className={styles.tagsContainer}>
-          {upperBu && (
-            <div className={`${styles.tag} ${styles.tagActive}`}>
-              <span className={styles.tagText}>BU：{upperBu}</span>
-              <button
-                type="button"
-                className={styles.tagClose}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClearFilter('bu');
-                }}
-                aria-label="BUタグを削除"
-              >
-                <FiX />
-              </button>
-            </div>
-          )}
-          {upperCustomerSite && (
-            <div className={`${styles.tag} ${styles.tagActive}`}>
-              <span className={styles.tagText}>顧客拠点：{upperCustomerSite}</span>
-              <button
-                type="button"
-                className={styles.tagClose}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClearFilter('customerSite');
-                }}
-                aria-label="顧客拠点タグを削除"
-              >
-                <FiX />
-              </button>
-            </div>
-          )}
-          {upperOrderSource && (
-            <div className={`${styles.tag} ${styles.tagActive}`}>
-              <span className={styles.tagText}>オーダ元：{upperOrderSource}</span>
-              <button
-                type="button"
-                className={styles.tagClose}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClearFilter('orderSource');
-                }}
-                aria-label="オーダ元タグを削除"
-              >
-                <FiX />
-              </button>
-            </div>
-          )}
         </div>
 
         <div className={styles.tableContainer}>
@@ -404,12 +294,7 @@ export const PartsRegistration = () => {
             hasError: false,
             isDisabled: false,
           };
-          const newRowWithFilter: RegistrationRow = {
-            ...newRow,
-            customerSite: upperCustomerSite || undefined,
-            orderSource: upperOrderSource || undefined,
-          };
-          setAllResults([...allResults, newRowWithFilter]);
+          setAllResults([...allResults, newRow]);
           success('パーツリクエストが登録されました');
         }}
         isRegistering={isRegistering}
@@ -417,110 +302,7 @@ export const PartsRegistration = () => {
         onCloseModal={handleCloseRequestModal}
       />
 
-      <FilterPanel
-        isOpen={isFilterPanelOpen}
-        onClose={handleCloseFilterPanel}
-        bu={tempBu}
-        customerSite={tempCustomerSite}
-        orderSource={tempOrderSource}
-        onBuChange={setTempBu}
-        onCustomerSiteChange={setTempCustomerSite}
-        onOrderSourceChange={setTempOrderSource}
-        onApply={handleApplyFilter}
-      />
     </div>
-  );
-};
-
-interface FilterPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
-  bu: string;
-  customerSite: string;
-  orderSource: string;
-  onBuChange: (value: string) => void;
-  onCustomerSiteChange: (value: string) => void;
-  onOrderSourceChange: (value: string) => void;
-  onApply: () => void;
-}
-
-const FilterPanel = ({
-  isOpen,
-  onClose,
-  bu,
-  customerSite,
-  orderSource,
-  onBuChange,
-  onCustomerSiteChange,
-  onOrderSourceChange,
-  onApply,
-}: FilterPanelProps) => {
-  const buOptionsWithEmpty: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    ...buOptions,
-  ];
-
-  const customerSiteOptionsWithEmpty: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    ...customerSiteOptions,
-  ];
-
-  const orderSourceOptionsWithEmpty: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    ...orderSourceOptions,
-  ];
-
-  return (
-    <SidePanel
-      isOpen={isOpen}
-      onClose={onClose}
-      title="フィルターを編集する"
-      position="right"
-      width="400px"
-    >
-      <div className={styles.filterPanelContent}>
-        <div className={styles.formRow}>
-          <div className={styles.formField}>
-            <Select
-              label="BU"
-              options={buOptionsWithEmpty}
-              value={bu}
-              onChange={(e) => onBuChange(e.target.value)}
-              placeholder="選択してください"
-              fullWidth
-            />
-          </div>
-          <div className={styles.formField}>
-            <Select
-              label="顧客拠点"
-              options={customerSiteOptionsWithEmpty}
-              value={customerSite}
-              onChange={(e) => onCustomerSiteChange(e.target.value)}
-              placeholder="選択してください"
-              fullWidth
-            />
-          </div>
-          <div className={styles.formField}>
-            <Select
-              label="オーダ元"
-              options={orderSourceOptionsWithEmpty}
-              value={orderSource}
-              onChange={(e) => onOrderSourceChange(e.target.value)}
-              placeholder="選択してください"
-              fullWidth
-            />
-          </div>
-        </div>
-        <div className={styles.filterPanelFooter}>
-          <Button variant="sub" onClick={onClose} fullWidth>
-            キャンセル
-          </Button>
-          <Button variant="default" onClick={onApply} fullWidth>
-            OK
-          </Button>
-        </div>
-      </div>
-    </SidePanel>
   );
 };
 
