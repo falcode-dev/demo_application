@@ -1,0 +1,111 @@
+{
+  "common": {
+    "search": "検索",
+    "reset": "リセット",
+    "close": "閉じる",
+    "update": "更新",
+    "loading": "読み込み中...",
+    "searching": "検索中...",
+    "select": "選択してください",
+    "cancel": "キャンセル",
+    "ok": "OK"
+  },
+  "partsSearch": {
+    "title": "パーツ検索",
+    "bu": "BU",
+    "partsNumber": "パーツ番号",
+    "partsNumberPlaceholder": "パーツ番号を入力",
+    "partsName": "パーツ名称／型式（英）",
+    "partsNamePlaceholder": "パーツ名称を入力",
+    "resultsCount": "検索結果: {{count}}件",
+    "noResults": "検索結果がありません",
+    "orderButton": "有償パーツ手配",
+    "orderSuccess": "パーツ手配が正常に登録されました",
+    "table": {
+      "bu": "BU",
+      "partsNumber": "パーツ番号",
+      "partsName": "パーツ名称／型式（英）",
+      "unit": "ユニット",
+      "signalCode": "シグナルコード",
+      "salesStatus": "販売ステータス",
+      "intelFlag": "インテルフラグ",
+      "consumableFlag": "消耗品フラグ",
+      "remarks": "備考",
+      "category": "区分",
+      "quantity": "個数"
+    },
+    "orderModal": {
+      "title": "パーツ手配の作成",
+      "deliveryDate": "客先納入希望日",
+      "deliveryDatePlaceholder": "日付を選択",
+      "customerName": "顧客名",
+      "customerNamePlaceholder": "顧客名を入力",
+      "deliveryType": "配送タイプ",
+      "deliveryTypeOptions": {
+        "normal": "通常配送",
+        "express": "速達",
+        "sameDay": "当日配送"
+      },
+      "memo": "メモ",
+      "memoPlaceholder": "メモを入力",
+      "selectedParts": "選択したパーツ",
+      "confirmButton": "確認画面"
+    },
+    "confirmModal": {
+      "title": "パーツ手配の確認",
+      "message": "選択済みのパーツを手配します。",
+      "confirmMessage": "よろしいですか？"
+    }
+  },
+  "partsDetail": {
+    "title": "パーツ詳細情報",
+    "notFound": "パーツ詳細情報が見つかりませんでした",
+    "inventory": {
+      "title": "在庫情報",
+      "warehouse": "倉庫",
+      "outbound": "出庫",
+      "available": "可能数",
+      "allocated": "引当済数",
+      "initialStock": "最初在庫数"
+    },
+    "alternativeParts": {
+      "title": "代替パーツ",
+      "noParts": "代替パーツがありません"
+    },
+    "fields": {
+      "bu": "BU",
+      "productCode": "プロダクトコード",
+      "partsNumber": "パーツ番号",
+      "partsName": "パーツ名称/型式(英)",
+      "unit": "ユニット",
+      "signalCode": "シグナルコード",
+      "purchaseItemStatus": "購買品目ステータス",
+      "category": "区分",
+      "salesStatus": "販売ステータス",
+      "purchasePossibleCategory": "購買可能区分",
+      "specificCustomerSalesPossibleCategory": "特定顧客販売可能区分",
+      "intelFlag": "インテルフラグ",
+      "consumable": "消耗品",
+      "telCustomerUrl": "TEL Customer URL",
+      "ltFromWarehouseJapanToCustomer": "LT from Warehouse in Japan to Customer",
+      "ltFromFactoryJapanToCustomer": "LT from Factory in Japan to Customer",
+      "ltFromGenpoWarehouseToCustomer": "LT from Genpo Warehouse in Genpo to Customer",
+      "ltFromNaritaToCustomer": "LT from Narita to Customer",
+      "optimalAlternativeParts": "最適な代替パーツ",
+      "remarks": "備考",
+      "repairableCategory": "修理可能区分",
+      "minOrderQuantity": "最小受注数量",
+      "shippingUnit": "出荷単位",
+      "eolCategory": "EOL区分",
+      "exportRestrictionCategory": "輸出規制区分",
+      "globalHazardousFlag": "Global危険物フラグ",
+      "mainComponent": "主構成物質",
+      "itemGroupPackagingSds": "品目グループ梱包材(SDS)",
+      "heavyObjectFlag": "Heavy Object Flag",
+      "createFlag": "Create Flag（木枠）",
+      "autoAllocationPermissionCategory": "自動引当権限区分",
+      "serialNumberProfile": "シリアル番号プロファイル"
+    }
+  }
+}
+

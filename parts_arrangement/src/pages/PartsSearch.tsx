@@ -1,146 +1,86 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Input, Select, Spinner, Modal, DatePicker } from '../components';
 import type { SelectOption } from '../components';
-import { searchParts, buOptions, type PartsSearchResult } from '../services/mockData';
+import { buOptions, type PartsSearchResult } from '../services/mockData';
+import { usePartsSearch } from '../hooks/usePartsSearch';
 import { FiCheckCircle } from 'react-icons/fi';
 import styles from './PartsSearch.module.css';
 
-interface PartsSearchProps {
-  onPartsNumberClick?: (partsNumber: string) => void;
-}
-
-export const PartsSearch = ({ }: PartsSearchProps) => {
-  const [bu, setBu] = useState<string>('');
-  const [partsNumber, setPartsNumber] = useState<string>('');
-  const [partsName, setPartsName] = useState<string>('');
-  const [results, setResults] = useState<PartsSearchResult[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [hasSearched, setHasSearched] = useState<boolean>(false);
-  const [selectedParts, setSelectedParts] = useState<Set<string>>(new Set());
-  const [isOrderModalOpen, setIsOrderModalOpen] = useState<boolean>(false);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false);
-
-  const handleSearch = async () => {
-    setLoading(true);
-    setHasSearched(true);
-    try {
-      const searchResults = await searchParts({
-        bu: bu || undefined,
-        partsNumber: partsNumber || undefined,
-        partsName: partsName || undefined,
-      });
-      setResults(searchResults);
-    } catch (error) {
-      console.error('検索エラー:', error);
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleReset = () => {
-    setHasSearched(false);
-    setResults([]);
-    setSelectedParts(new Set());
-    setBu('');
-    setPartsNumber('');
-    setPartsName('');
-  };
-
-  const handleCheckboxChange = (partsNumber: string) => {
-    const newSelected = new Set(selectedParts);
-    if (newSelected.has(partsNumber)) {
-      newSelected.delete(partsNumber);
-    } else {
-      newSelected.add(partsNumber);
-    }
-    setSelectedParts(newSelected);
-  };
-
-  // OrderModalを開く
-  const handleOpenOrderModal = () => {
-    setIsConfirmModalOpen(false); // 念のため確認モーダルを閉じる
-    setIsOrderModalOpen(true);
-  };
-
-  // 確認モーダルを開く
-  const handleOpenConfirmModal = () => {
-    setIsConfirmModalOpen(true);
-  };
-
-  // 確認モーダルを閉じる
-  const handleCloseConfirmModal = () => {
-    setIsConfirmModalOpen(false);
-  };
-
-  // 確認モーダルでOKを押した時
-  const handleConfirm = () => {
-    setIsConfirmModalOpen(false);
-    setIsOrderModalOpen(false);
-    setSelectedParts(new Set());
-  };
-
-  // OrderModalを閉じる（確認モーダルも閉じる）
-  const handleCloseOrderModal = () => {
-    setIsConfirmModalOpen(false);
-    setIsOrderModalOpen(false);
-  };
-
-  const handlePartsNumberClick = (partsNumber: string) => {
-    // 常に別タブでパーツ詳細画面を開く（元の検索画面はそのまま）
-    const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
-
-    // PowerApps環境でも通常のWeb環境でも、window.openでタブを開く
-    // PowerAppsのWebリソース内からwindow.openを呼び出すと、ブラウザのタブで開かれる
-    window.open(detailUrl, '_blank');
-  };
+export const PartsSearch = () => {
+  const { t } = useTranslation();
+  const {
+    bu,
+    setBu,
+    partsNumber,
+    setPartsNumber,
+    partsName,
+    setPartsName,
+    results,
+    loading,
+    hasSearched,
+    selectedParts,
+    isOrderModalOpen,
+    isConfirmModalOpen,
+    shouldResetOrderModal,
+    handleSearch,
+    handleReset,
+    handleCheckboxChange,
+    handleSelectAll,
+    handleOpenOrderModal,
+    handleOpenConfirmModal,
+    handleCloseConfirmModal,
+    handleConfirm,
+    handleCloseOrderModal,
+    handlePartsNumberClick,
+  } = usePartsSearch();
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>パーツ検索</h1>
+      <h1 className={styles.title}>{t('partsSearch.title')}</h1>
 
       <div className={styles.searchForm}>
         <div className={styles.formRow}>
           <div className={styles.formField}>
             <Select
-              label="BU"
+              label={t('partsSearch.bu')}
               options={buOptions as SelectOption[]}
               value={bu}
               onChange={(e) => setBu(e.target.value)}
-              placeholder="選択してください"
+              placeholder={t('common.select')}
             />
           </div>
           <div className={styles.formField}>
             <Input
-              label="パーツ番号"
+              label={t('partsSearch.partsNumber')}
               value={partsNumber}
               onChange={(e) => setPartsNumber(e.target.value)}
-              placeholder="パーツ番号を入力"
+              placeholder={t('partsSearch.partsNumberPlaceholder')}
             />
           </div>
           <div className={styles.formField}>
             <Input
-              label="パーツ名称／型式（英）"
+              label={t('partsSearch.partsName')}
               value={partsName}
               onChange={(e) => setPartsName(e.target.value)}
-              placeholder="パーツ名称を入力"
+              placeholder={t('partsSearch.partsNamePlaceholder')}
             />
           </div>
         </div>
 
         <div className={styles.buttonRow}>
           <Button variant="default" onClick={handleSearch} disabled={loading}>
-            検索
+            {t('common.search')}
           </Button>
           <Button variant="sub" onClick={handleReset} disabled={loading}>
-            リセット
+            {t('common.reset')}
           </Button>
         </div>
       </div>
 
       {loading && (
         <div className={styles.loadingContainer}>
-          <Spinner size="large" variant="primary" label="検索中..." />
+          <Spinner size="large" variant="primary" label={t('common.searching')} />
         </div>
       )}
 
@@ -148,7 +88,7 @@ export const PartsSearch = ({ }: PartsSearchProps) => {
         <div className={styles.resultsContainer}>
           <div className={styles.resultsHeader}>
             <p className={styles.resultsCount}>
-              検索結果: {results.length}件
+              {t('partsSearch.resultsCount', { count: results.length })}
             </p>
           </div>
           {results.length > 0 ? (
@@ -162,27 +102,21 @@ export const PartsSearch = ({ }: PartsSearchProps) => {
                           type="checkbox"
                           className={styles.checkbox}
                           checked={selectedParts.size > 0 && selectedParts.size === results.length}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedParts(new Set(results.map(r => r.partsNumber)));
-                            } else {
-                              setSelectedParts(new Set());
-                            }
-                          }}
+                          onChange={(e) => handleSelectAll(e.target.checked)}
                         />
                         <span className={styles.checkmark}></span>
                       </label>
                     </th>
-                    <th>BU</th>
-                    <th>パーツ番号</th>
-                    <th>パーツ名称／型式（英）</th>
-                    <th>ユニット</th>
-                    <th>シグナルコード</th>
-                    <th>販売ステータス</th>
-                    <th>インテルフラグ</th>
-                    <th>消耗品フラグ</th>
-                    <th>備考</th>
-                    <th>区分</th>
+                    <th>{t('partsSearch.table.bu')}</th>
+                    <th>{t('partsSearch.table.partsNumber')}</th>
+                    <th>{t('partsSearch.table.partsName')}</th>
+                    <th>{t('partsSearch.table.unit')}</th>
+                    <th>{t('partsSearch.table.signalCode')}</th>
+                    <th>{t('partsSearch.table.salesStatus')}</th>
+                    <th>{t('partsSearch.table.intelFlag')}</th>
+                    <th>{t('partsSearch.table.consumableFlag')}</th>
+                    <th>{t('partsSearch.table.remarks')}</th>
+                    <th>{t('partsSearch.table.category')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -223,7 +157,7 @@ export const PartsSearch = ({ }: PartsSearchProps) => {
             </div>
           ) : (
             <div className={styles.noResults}>
-              <p>検索結果がありません</p>
+              <p>{t('partsSearch.noResults')}</p>
             </div>
           )}
         </div>
@@ -236,12 +170,11 @@ export const PartsSearch = ({ }: PartsSearchProps) => {
             onClick={handleOpenOrderModal}
             disabled={selectedParts.size === 0}
           >
-            有償パーツ手配
+            {t('partsSearch.orderButton')}
           </Button>
         </div>
       )}
 
-      {/* パーツ手配作成モーダル */}
       <OrderModal
         isOpen={isOrderModalOpen}
         onClose={handleCloseOrderModal}
@@ -250,9 +183,9 @@ export const PartsSearch = ({ }: PartsSearchProps) => {
         onConfirm={handleOpenConfirmModal}
         isConfirmModalOpen={isConfirmModalOpen}
         onCloseConfirmModal={handleCloseConfirmModal}
+        shouldReset={shouldResetOrderModal}
       />
 
-      {/* 確認画面モーダル */}
       <ConfirmModal
         isOpen={isConfirmModalOpen}
         onClose={handleCloseConfirmModal}
@@ -262,7 +195,6 @@ export const PartsSearch = ({ }: PartsSearchProps) => {
   );
 };
 
-// パーツ手配作成モーダル
 interface OrderModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -271,9 +203,11 @@ interface OrderModalProps {
   onConfirm: () => void;
   isConfirmModalOpen?: boolean;
   onCloseConfirmModal?: () => void;
+  shouldReset?: boolean;
 }
 
-const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm, isConfirmModalOpen, onCloseConfirmModal }: OrderModalProps) => {
+const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm, isConfirmModalOpen, onCloseConfirmModal, shouldReset }: OrderModalProps) => {
+  const { t } = useTranslation();
   const [deliveryDate, setDeliveryDate] = useState<Date | null>(null);
   const [customerName, setCustomerName] = useState<string>('');
   const [deliveryType, setDeliveryType] = useState<string>('');
@@ -282,22 +216,27 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
 
   const selectedParts = results.filter(r => selectedPartsNumbers.includes(r.partsNumber));
 
-  // 数量の初期化（初期は空のまま）
   useEffect(() => {
-    // 新しく選択されたパーツのみ、数量が未設定の場合は空（undefined）のままにする
     selectedParts.forEach(part => {
       if (!(part.partsNumber in quantities)) {
-        // 初期値は設定しない（空のまま）
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPartsNumbers]);
 
+  useEffect(() => {
+    if (shouldReset) {
+      setDeliveryDate(null);
+      setCustomerName('');
+      setDeliveryType('');
+      setMemo('');
+      setQuantities({});
+    }
+  }, [shouldReset]);
+
   const handleQuantityChange = (partsNumber: string, value: string) => {
-    // 数値のみ許可し、3桁まで制限
     const numericValue = value.replace(/[^0-9]/g, '').slice(0, 3);
     if (numericValue === '') {
-      // 空の場合は0に設定
       setQuantities(prev => ({
         ...prev,
         [partsNumber]: 0
@@ -314,19 +253,16 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
   };
 
   const deliveryTypeOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: 'type1', label: '通常配送' },
-    { value: 'type2', label: '速達' },
-    { value: 'type3', label: '当日配送' },
+    { value: '', label: t('common.select') },
+    { value: 'type1', label: t('partsSearch.orderModal.deliveryTypeOptions.normal') },
+    { value: 'type2', label: t('partsSearch.orderModal.deliveryTypeOptions.express') },
+    { value: 'type3', label: t('partsSearch.orderModal.deliveryTypeOptions.sameDay') },
   ];
 
-  // キャンセルボタンの処理
   const handleCancel = () => {
-    // 確認モーダルが開いている場合は確認モーダルのみ閉じる
     if (isConfirmModalOpen && onCloseConfirmModal) {
       onCloseConfirmModal();
     } else {
-      // そうでない場合はOrderModalを閉じる
       onClose();
     }
   };
@@ -334,10 +270,10 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
   const footer = (
     <div className={styles.modalFooter}>
       <Button variant="sub" onClick={handleCancel}>
-        キャンセル
+        {t('common.cancel')}
       </Button>
       <Button variant="default" onClick={onConfirm}>
-        確認画面
+        {t('partsSearch.orderModal.confirmButton')}
       </Button>
     </div>
   );
@@ -346,7 +282,7 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="パーツ手配の作成"
+      title={t('partsSearch.orderModal.title')}
       footer={footer}
       size="large"
       closeOnOverlayClick={!isConfirmModalOpen}
@@ -358,29 +294,29 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
           <div className={styles.formRow}>
             <div className={styles.formField}>
               <DatePicker
-                label="客先納入希望日"
+                label={t('partsSearch.orderModal.deliveryDate')}
                 value={deliveryDate}
                 onChange={setDeliveryDate}
-                placeholder="日付を選択"
+                placeholder={t('partsSearch.orderModal.deliveryDatePlaceholder')}
                 fullWidth
               />
             </div>
             <div className={styles.formField}>
               <Input
-                label="顧客名"
+                label={t('partsSearch.orderModal.customerName')}
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="顧客名を入力"
+                placeholder={t('partsSearch.orderModal.customerNamePlaceholder')}
                 fullWidth
               />
             </div>
             <div className={styles.formField}>
               <Select
-                label="配送タイプ"
+                label={t('partsSearch.orderModal.deliveryType')}
                 options={deliveryTypeOptions}
                 value={deliveryType}
                 onChange={(e) => setDeliveryType(e.target.value)}
-                placeholder="選択してください"
+                placeholder={t('common.select')}
                 fullWidth
               />
             </div>
@@ -388,12 +324,12 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
 
           <div className={styles.formRow}>
             <div className={styles.formField}>
-              <label className={styles.textareaLabel}>メモ</label>
+              <label className={styles.textareaLabel}>{t('partsSearch.orderModal.memo')}</label>
               <textarea
                 className={styles.textarea}
                 value={memo}
                 onChange={(e) => setMemo(e.target.value)}
-                placeholder="メモを入力"
+                placeholder={t('partsSearch.orderModal.memoPlaceholder')}
                 rows={3}
               />
             </div>
@@ -401,22 +337,22 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
         </div>
 
         <div className={styles.selectedPartsList}>
-          <h3 className={styles.selectedPartsTitle}>選択したパーツ</h3>
+          <h3 className={styles.selectedPartsTitle}>{t('partsSearch.orderModal.selectedParts')}</h3>
           <div className={styles.tableWrapper}>
             <table className={styles.resultsTable}>
               <thead>
                 <tr>
-                  <th>BU</th>
-                  <th>パーツ番号</th>
-                  <th>パーツ名称／型式（英）</th>
-                  <th>ユニット</th>
-                  <th>シグナルコード</th>
-                  <th>販売ステータス</th>
-                  <th>インテルフラグ</th>
-                  <th>消耗品フラグ</th>
-                  <th>備考</th>
-                  <th>区分</th>
-                  <th>個数</th>
+                  <th>{t('partsSearch.table.bu')}</th>
+                  <th>{t('partsSearch.table.partsNumber')}</th>
+                  <th>{t('partsSearch.table.partsName')}</th>
+                  <th>{t('partsSearch.table.unit')}</th>
+                  <th>{t('partsSearch.table.signalCode')}</th>
+                  <th>{t('partsSearch.table.salesStatus')}</th>
+                  <th>{t('partsSearch.table.intelFlag')}</th>
+                  <th>{t('partsSearch.table.consumableFlag')}</th>
+                  <th>{t('partsSearch.table.remarks')}</th>
+                  <th>{t('partsSearch.table.category')}</th>
+                  <th>{t('partsSearch.table.quantity')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -459,7 +395,6 @@ const OrderModal = ({ isOpen, onClose, selectedPartsNumbers, results, onConfirm,
   );
 };
 
-// 確認画面モーダル
 interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -467,13 +402,14 @@ interface ConfirmModalProps {
 }
 
 const ConfirmModal = ({ isOpen, onClose, onConfirm }: ConfirmModalProps) => {
+  const { t } = useTranslation();
   const footer = (
     <div className={styles.modalFooter}>
       <Button variant="sub" onClick={onClose}>
-        キャンセル
+        {t('common.cancel')}
       </Button>
       <Button variant="default" onClick={onConfirm}>
-        OK
+        {t('common.ok')}
       </Button>
     </div>
   );
@@ -490,11 +426,11 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm }: ConfirmModalProps) => {
       <div className={styles.confirmModalContent}>
         <div className={styles.confirmHeader}>
           <FiCheckCircle className={styles.confirmIcon} />
-          <h2 className={styles.confirmTitle}>パーツ手配の確認</h2>
+          <h2 className={styles.confirmTitle}>{t('partsSearch.confirmModal.title')}</h2>
         </div>
         <div className={styles.confirmMessage}>
-          <p>選択済みのパーツを手配します。</p>
-          <p>よろしいですか？</p>
+          <p>{t('partsSearch.confirmModal.message')}</p>
+          <p>{t('partsSearch.confirmModal.confirmMessage')}</p>
         </div>
       </div>
     </Modal>

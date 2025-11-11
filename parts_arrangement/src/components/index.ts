@@ -19,3 +19,6 @@ export type { ModalProps } from './Modal';
 export { Checkbox } from './Checkbox';
 export type { CheckboxProps } from './Checkbox';
 
+export { ToastContainer } from './Toast';
+export type { Toast, ToastType } from './Toast';
+
