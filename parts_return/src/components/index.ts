@@ -16,6 +16,6 @@ export type { SpinnerProps } from './Spinner';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 
-export { Toast } from './Toast';
-export type { ToastProps } from './Toast';
+export { ToastContainer } from './Toast';
+export type { Toast, ToastType } from './Toast';
 

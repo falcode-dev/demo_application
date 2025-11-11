@@ -1,56 +1,70 @@
-import { useEffect } from 'react';
-import { FiAlertCircle, FiX } from 'react-icons/fi';
+import { useEffect, useState, useCallback } from 'react';
+import { FiCheckCircle, FiXCircle, FiInfo, FiAlertCircle, FiX } from 'react-icons/fi';
 import styles from './Toast.module.css';
 
-export interface ToastProps {
-  /** トーストのメッセージ */
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Toast {
+  id: string;
   message: string;
-  /** トーストのタイプ */
-  type?: 'error' | 'success' | 'info' | 'warning';
-  /** 表示時間（ミリ秒）。0の場合は自動で閉じない */
+  type: ToastType;
   duration?: number;
-  /** トーストを閉じる関数 */
-  onClose: () => void;
-  /** トーストの位置 */
-  position?: 'top-right' | 'top-left' | 'top-center' | 'bottom-right' | 'bottom-left' | 'bottom-center';
 }
 
-export const Toast = ({
-  message,
-  type = 'info',
-  duration = 5000,
-  onClose,
-  position = 'top-right',
-}: ToastProps) => {
+interface ToastProps {
+  toast: Toast;
+  onClose: (id: string) => void;
+}
+
+const ANIMATION_DURATION = 300;
+
+export const ToastItem = ({ toast, onClose }: ToastProps) => {
+  const [isClosing, setIsClosing] = useState(false);
+
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose(toast.id);
+    }, ANIMATION_DURATION);
+  }, [toast.id, onClose]);
+
   useEffect(() => {
-    if (duration > 0) {
+    if (toast.duration && toast.duration > 0) {
       const timer = setTimeout(() => {
-        onClose();
-      }, duration);
+        handleClose();
+      }, toast.duration);
+
       return () => clearTimeout(timer);
     }
-  }, [duration, onClose]);
+  }, [toast.duration, handleClose]);
+
+  const getIcon = () => {
+    switch (toast.type) {
+      case 'success':
+        return <FiCheckCircle className={styles.icon} />;
+      case 'error':
+        return <FiXCircle className={styles.icon} />;
+      case 'warning':
+        return <FiAlertCircle className={styles.icon} />;
+      case 'info':
+      default:
+        return <FiInfo className={styles.icon} />;
+    }
+  };
 
   return (
-    <div className={`${styles.toast} ${styles[type]} ${styles[position]}`} role="alert">
-      <div className={styles.content}>
-        <FiAlertCircle className={styles.icon} aria-hidden="true" />
-        <div className={styles.message}>
-          {message.split('\n').map((line, index) => (
-            <div key={index} className={line.trim() === '' ? styles.emptyLine : ''}>
-              {line || '\u00A0'}
-            </div>
-          ))}
-        </div>
-      </div>
+    <div
+      className={`${styles.toast} ${styles[toast.type]} ${isClosing ? styles.closing : ''}`}
+    >
+      {getIcon()}
+      <span className={styles.message}>{toast.message}</span>
       <button
         className={styles.closeButton}
-        onClick={onClose}
-        aria-label="閉じる"
+        onClick={handleClose}
+        aria-label="Close"
       >
-        <FiX aria-hidden="true" />
+        <FiX />
       </button>
     </div>
   );
 };
-

@@ -1,22 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Button, Select, Toast, Modal, Input } from '../components';
+import { Button, Select, Modal, Input } from '../components';
 import type { SelectOption } from '../components';
 import { getPartsReturnData, type PartsReturnRow } from '../services/mockData';
+import { useToastContext } from '../contexts/ToastContext';
 import { FiAlertCircle } from 'react-icons/fi';
 import styles from './PartsRegistration.module.css';
 
-// // パーツ番号をクリックした時の処理（一覧表示を再度利用する場合に復活させる）
-// const handlePartsNumberClick = (partsNumber: string) => {
-//   // 常に別タブでパーツ詳細画面を開く（元の登録画面はそのまま）
-//   const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
-//   window.open(detailUrl, '_blank');
-// };
-
 export const PartsRegistration = () => {
+  const { success } = useToastContext();
   const [results, setResults] = useState<PartsReturnRow[]>([]);
   const [selectedReturnIndex, setSelectedReturnIndex] = useState<number | null>(null);
   const [isReturning, setIsReturning] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 初期データの読み込み
   useEffect(() => {
@@ -53,18 +47,10 @@ export const PartsRegistration = () => {
 
   const selectedParts = selectedReturnIndex !== null ? results[selectedReturnIndex] : null;
 
-  // 一覧表示は一時的に停止（必要になれば下記コメントアウトを戻す）
-  /*
-  <div className={styles.section}>
-    ...一覧表示ロジック...
-  </div>
-  */
-
   return (
     <div className={styles.container}>
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          {/* <h2 className={styles.sectionTitle}>パーツ返却</h2> */}
         </div>
         <div>
           {selectedParts ? (
@@ -79,7 +65,7 @@ export const PartsRegistration = () => {
                 const newResults = [...results];
                 newResults[selectedReturnIndex].isReturned = true;
                 setResults(newResults);
-                setToastMessage('パーツ返却が登録されました');
+                success('パーツ返却が登録されました');
               }}
               isReturning={isReturning}
               setIsReturning={setIsReturning}
@@ -91,17 +77,6 @@ export const PartsRegistration = () => {
           )}
         </div>
       </div>
-
-      {/* トースト通知 */}
-      {toastMessage && (
-        <Toast
-          message={toastMessage}
-          type={toastMessage.includes('エラー') ? 'error' : 'success'}
-          duration={5000}
-          onClose={() => setToastMessage(null)}
-          position="top-center"
-        />
-      )}
     </div>
   );
 };

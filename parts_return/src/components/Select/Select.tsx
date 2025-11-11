@@ -1,6 +1,7 @@
 import { forwardRef, useState, useRef, useEffect } from 'react';
 import type { SelectHTMLAttributes, CSSProperties } from 'react';
 import type { IconType } from 'react-icons';
+import { FaChevronDown } from 'react-icons/fa';
 import styles from './Select.module.css';
 
 export interface SelectOption {
@@ -250,9 +251,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 />
               ) : (
                 showIcons && (
-                  <span className={`${styles.defaultIcon} ${isOpen ? styles.rotated : ''}`}>
-                    ▼
-                  </span>
+                  <FaChevronDown 
+                    className={`${styles.rightIcon} ${isOpen ? styles.rotated : ''}`} 
+                    aria-hidden="true" 
+                  />
                 )
               )}
             </button>
