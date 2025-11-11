@@ -295,32 +295,32 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
           </div>
 
           <div className={styles.inventoryControls}>
-            <div className={styles.radioGroup}>
-              {['JP', 'US', 'EU', 'CN', 'KR', 'SG', 'TW'].map((r) => (
-                <label key={r} className={styles.radioLabel}>
-                  <input
-                    type="radio"
-                    name="region"
-                    value={r}
-                    checked={region === r}
+          <div className={styles.radioGroup}>
+            {['JP', 'US', 'EU', 'CN', 'KR', 'SG', 'TW'].map((r) => (
+              <label key={r} className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="region"
+                  value={r}
+                  checked={region === r}
                     onChange={(e) => handleRegionChange(e.target.value)}
-                    className={styles.radioInput}
-                  />
-                  <span>{r}</span>
-                </label>
-              ))}
-            </div>
-            <div className={styles.updateButtonContainer}>
-              <Button
-                variant="default"
-                onClick={handleInventoryRefresh}
-                disabled={inventoryLoading}
-                className={styles.updateButton}
-              >
-                {t('common.update')}
-              </Button>
-            </div>
+                  className={styles.radioInput}
+                />
+                <span>{r}</span>
+              </label>
+            ))}
           </div>
+          <div className={styles.updateButtonContainer}>
+            <Button
+              variant="default"
+                onClick={handleInventoryRefresh}
+              disabled={inventoryLoading}
+                className={styles.updateButton}
+            >
+              {t('common.update')}
+            </Button>
+          </div>
+        </div>
         </div>
 
       </div>
