@@ -598,6 +598,149 @@
   color: var(--color-text-secondary);
 }
 
+.filterButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs, 4px);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
+  color: #4dd0e1;
+  transition: color 0.2s, background-color 0.2s, opacity 0.2s;
+  border-radius: var(--radius-md, 6px);
+  height: 32px;
+}
+
+.filterButton:hover:not(:disabled) {
+  color: #26c6da;
+  background-color: rgba(77, 208, 225, 0.1);
+}
+
+.filterButton:disabled {
+  color: #b0bec5;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.filterButton svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #4dd0e1;
+}
+
+.filterButton:hover:not(:disabled) svg {
+  color: #26c6da;
+}
+
+.filterButton:disabled svg {
+  color: #b0bec5;
+}
+
+.filterButtonText {
+  font-size: var(--font-size-sm, 14px);
+  font-weight: 500;
+  white-space: nowrap;
+  color: #000000;
+}
+
+.filterButton:disabled .filterButtonText {
+  color: #b0bec5;
+}
+
+.tagsContainer {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  min-height: 32px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs, 4px);
+  padding: 6px 12px;
+  background-color: #e0f7fa;
+  color: #006064;
+  border: 1px solid #80deea;
+  border-radius: 16px;
+  font-size: var(--font-size-sm, 13px);
+  font-weight: 500;
+  cursor: default;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.tagActive {
+  background-color: #4dd0e1;
+  color: #004d40;
+  border-color: #26c6da;
+}
+
+.tagText {
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.tagClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px;
+  margin-left: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.tagClose:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  opacity: 1;
+}
+
+.tagActive .tagClose {
+  color: #004d40;
+  opacity: 0.8;
+}
+
+.tagActive .tagClose:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  opacity: 1;
+}
+
+.tagClose svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.5;
+}
+
+.filterPanelContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  height: 100%;
+  padding-bottom: var(--spacing-lg);
+}
+
+.filterPanelFooter {
+  display: flex;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border, #e0e0e0);
+  margin-top: auto;
+}
+
 .textarea:disabled {
   background-color: var(--color-bg-secondary);
   cursor: not-allowed;

@@ -1,0 +1,124 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.overlay.closing {
+  animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.panel {
+  position: fixed;
+  top: 0;
+  height: 100%;
+  background-color: var(--color-bg-primary, #ffffff);
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+  padding: var(--spacing-lg);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.panel.right {
+  right: 0;
+  box-shadow: var(--shadow-lg, -2px 0 8px rgba(0, 0, 0, 0.15));
+  animation: slideInRight 0.3s ease-out;
+}
+
+.panel.left {
+  left: 0;
+  box-shadow: var(--shadow-lg, 2px 0 8px rgba(0, 0, 0, 0.15));
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.panel.right.closing {
+  animation: slideOutRight 0.3s ease-out forwards;
+}
+
+.panel.left.closing {
+  animation: slideOutLeft 0.3s ease-out forwards;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  flex: 1;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: color 0.2s;
+  border-radius: var(--radius-sm);
+}
+
+.closeButton:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+}
+
+.closeButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: var(--spacing-lg);
+}
+

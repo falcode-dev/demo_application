@@ -1,18 +1,12 @@
 import { useState } from 'react';
-import { Button, Select, Toast, Modal, Input } from '../components';
+import { Button, Select, Modal, Input, SidePanel } from '../components';
 import type { SelectOption } from '../components';
 import type { PartsSearchResult } from '../services/mockData';
+import { openPartsDetail } from '../utils/navigation';
+import { useToastContext } from '../contexts/ToastContext';
+import { buOptions, customerSiteOptions, orderSourceOptions } from '../services/mockData';
+import { FiX, FiFilter } from 'react-icons/fi';
 import styles from './PartsRegistration.module.css';
-
-// パーツ番号をクリックした時の処理
-const handlePartsNumberClick = (partsNumber: string) => {
-  // 常に別タブでパーツ詳細画面を開く（元の登録画面はそのまま）
-  const detailUrl = `${window.location.origin}${window.location.pathname}?partsNumber=${encodeURIComponent(partsNumber)}`;
-
-  // PowerApps環境でも通常のWeb環境でも、window.openでタブを開く
-  // PowerAppsのWebリソース内からwindow.openを呼び出すと、ブラウザのタブで開かれる
-  window.open(detailUrl, '_blank');
-};
 
 interface RegistrationRow extends PartsSearchResult {
   checked: boolean;
@@ -24,30 +18,66 @@ interface RegistrationRow extends PartsSearchResult {
   quantityError?: boolean;
   billingCategoryError?: boolean;
   partsCategoryError?: boolean;
+  customerSite?: string;
+  orderSource?: string;
 }
 
 export const PartsRegistration = () => {
-  // セクションの状態
-  const [results, setResults] = useState<RegistrationRow[]>([]);
-
-  // パーツリクエスト登録モーダルの状態
+  const { success } = useToastContext();
+  const [upperBu, setUpperBu] = useState<string>('');
+  const [upperCustomerSite, setUpperCustomerSite] = useState<string>('');
+  const [upperOrderSource, setUpperOrderSource] = useState<string>('');
+  const [allResults, setAllResults] = useState<RegistrationRow[]>([]);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState<boolean>(false);
+  const [tempBu, setTempBu] = useState<string>('');
+  const [tempCustomerSite, setTempCustomerSite] = useState<string>('');
+  const [tempOrderSource, setTempOrderSource] = useState<string>('');
 
-  // トースト通知の状態
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const results = allResults.filter((item) => {
+    if (upperBu && item.bu !== upperBu) return false;
+    if (upperCustomerSite && item.customerSite !== upperCustomerSite) return false;
+    if (upperOrderSource && item.orderSource !== upperOrderSource) return false;
+    return true;
+  });
 
-  // パーツリクエスト登録モーダルを開く
   const handleOpenRequestModal = () => {
     setIsRequestModalOpen(true);
   };
 
-  // パーツリクエスト登録モーダルを閉じる
   const handleCloseRequestModal = () => {
     setIsRequestModalOpen(false);
   };
 
-  // 請求区分の選択肢
+  const handleOpenFilterPanel = () => {
+    setTempBu(upperBu);
+    setTempCustomerSite(upperCustomerSite);
+    setTempOrderSource(upperOrderSource);
+    setIsFilterPanelOpen(true);
+  };
+
+  const handleCloseFilterPanel = () => {
+    setIsFilterPanelOpen(false);
+  };
+
+  const handleApplyFilter = () => {
+    setUpperBu(tempBu);
+    setUpperCustomerSite(tempCustomerSite);
+    setUpperOrderSource(tempOrderSource);
+    setIsFilterPanelOpen(false);
+  };
+
+  const handleClearFilter = (type: 'bu' | 'customerSite' | 'orderSource') => {
+    if (type === 'bu') {
+      setUpperBu('');
+    } else if (type === 'customerSite') {
+      setUpperCustomerSite('');
+    } else if (type === 'orderSource') {
+      setUpperOrderSource('');
+    }
+  };
+
   const billingCategoryOptions: SelectOption[] = [
     { value: '', label: '選択してください' },
     { value: '有償', label: '有償' },
@@ -62,94 +92,125 @@ export const PartsRegistration = () => {
     { value: '預託在庫', label: '預託在庫' },
   ];
 
-  // 全件チェック/解除
   const handleSelectAll = () => {
     const allChecked = results.every(item => item.checked || item.isDisabled);
-    const newResults = results.map(item => {
+    const newResults = allResults.map(item => {
       if (item.isDisabled) {
-        return item; // 非活性の行は変更しない
+        return item;
       }
-      return {
-        ...item,
-        checked: !allChecked,
-        hasError: false, // チェックを変更したらエラーをクリア
-      };
+      const matchesFilter =
+        (!upperBu || item.bu === upperBu) &&
+        (!upperCustomerSite || item.customerSite === upperCustomerSite) &&
+        (!upperOrderSource || item.orderSource === upperOrderSource);
+
+      if (matchesFilter) {
+        return {
+          ...item,
+          checked: !allChecked,
+          hasError: false,
+        };
+      }
+      return item;
     });
-    setResults(newResults);
+    setAllResults(newResults);
   };
 
-  // チェックボックス変更
   const handleCheckboxChange = (index: number) => {
-    const newResults = [...results];
-    if (newResults[index].isDisabled) {
-      return; // 非活性の行は変更不可
+    const resultItem = results[index];
+    const actualIndex = allResults.findIndex(item =>
+      item.partsNumber === resultItem.partsNumber &&
+      item.bu === resultItem.bu
+    );
+    if (actualIndex === -1 || allResults[actualIndex].isDisabled) {
+      return;
     }
-    newResults[index].checked = !newResults[index].checked;
-    newResults[index].hasError = false; // チェックを変更したらエラーをクリア
-    setResults(newResults);
+
+    const newResults = [...allResults];
+    newResults[actualIndex].checked = !newResults[actualIndex].checked;
+    newResults[actualIndex].hasError = false;
+    setAllResults(newResults);
   };
 
-  // 消費数量変更
   const handleQuantityChange = (index: number, value: string) => {
-    if (results[index].isDisabled) {
-      return; // 非活性の行は変更不可
+    const resultItem = results[index];
+    const actualIndex = allResults.findIndex(item =>
+      item.partsNumber === resultItem.partsNumber &&
+      item.bu === resultItem.bu
+    );
+    if (actualIndex === -1 || allResults[actualIndex].isDisabled) {
+      return;
     }
-    // 数値のみ許可し、3桁まで制限
     const numericValue = value.replace(/[^0-9]/g, '').slice(0, 3);
-    const newResults = [...results];
+    const newResults = [...allResults];
     if (numericValue === '') {
-      // 空の場合は0に設定
-      newResults[index].consumptionQuantity = 0;
+      newResults[actualIndex].consumptionQuantity = 0;
     } else {
       const numValue = parseInt(numericValue, 10);
       if (!isNaN(numValue) && numValue >= 0 && numValue <= 999) {
-        newResults[index].consumptionQuantity = numValue;
-        // 数値を入力したらチェックボックスをオンにする
-        newResults[index].checked = true;
+        newResults[actualIndex].consumptionQuantity = numValue;
+        newResults[actualIndex].checked = true;
       }
     }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setResults(newResults);
+    newResults[actualIndex].hasError = false;
+    setAllResults(newResults);
   };
 
-  // パーツ区分変更
   const handlePartsCategoryChange = (index: number, value: string) => {
-    if (results[index].isDisabled) {
-      return; // 非活性の行は変更不可
+    const resultItem = results[index];
+    const actualIndex = allResults.findIndex(item =>
+      item.partsNumber === resultItem.partsNumber &&
+      item.bu === resultItem.bu
+    );
+    if (actualIndex === -1 || allResults[actualIndex].isDisabled) {
+      return;
     }
-    const newResults = [...results];
-    newResults[index].partsCategory = value;
-    // 選択肢を選んだらチェックボックスをオンにする
+    const newResults = [...allResults];
+    newResults[actualIndex].partsCategory = value;
     if (value !== '') {
-      newResults[index].checked = true;
+      newResults[actualIndex].checked = true;
     }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setResults(newResults);
+    newResults[actualIndex].hasError = false;
+    setAllResults(newResults);
   };
 
-  // 請求区分変更
   const handleBillingCategoryChange = (index: number, value: string) => {
-    if (results[index].isDisabled) {
-      return; // 非活性の行は変更不可
+    const resultItem = results[index];
+    const actualIndex = allResults.findIndex(item =>
+      item.partsNumber === resultItem.partsNumber &&
+      item.bu === resultItem.bu
+    );
+    if (actualIndex === -1 || allResults[actualIndex].isDisabled) {
+      return;
     }
-    const newResults = [...results];
-    newResults[index].billingCategory = value;
-    // 選択肢を選んだらチェックボックスをオンにする
+    const newResults = [...allResults];
+    newResults[actualIndex].billingCategory = value;
     if (value !== '') {
-      newResults[index].checked = true;
+      newResults[actualIndex].checked = true;
     }
-    newResults[index].hasError = false; // 値を変更したらエラーをクリア
-    setResults(newResults);
+    newResults[actualIndex].hasError = false;
+    setAllResults(newResults);
   };
 
+
+  const handlePartsNumberClick = (partsNumber: string) => {
+    openPartsDetail(partsNumber);
+  };
 
   return (
     <div className={styles.container}>
-      {/* セクション */}
       <div className={styles.lowerSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>パーツ実績登録（顧客提供・預託在庫）</h2>
           <div className={styles.headerRight}>
+            <button
+              className={styles.filterButton}
+              onClick={handleOpenFilterPanel}
+              disabled={allResults.length === 0}
+              aria-label="フィルターを編集する"
+            >
+              <FiFilter />
+              <span className={styles.filterButtonText}>フィルターを編集する</span>
+            </button>
             <Button
               variant="default"
               onClick={handleOpenRequestModal}
@@ -157,6 +218,57 @@ export const PartsRegistration = () => {
               パーツリクエスト登録
             </Button>
           </div>
+        </div>
+
+        <div className={styles.tagsContainer}>
+          {upperBu && (
+            <div className={`${styles.tag} ${styles.tagActive}`}>
+              <span className={styles.tagText}>BU：{upperBu}</span>
+              <button
+                type="button"
+                className={styles.tagClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClearFilter('bu');
+                }}
+                aria-label="BUタグを削除"
+              >
+                <FiX />
+              </button>
+            </div>
+          )}
+          {upperCustomerSite && (
+            <div className={`${styles.tag} ${styles.tagActive}`}>
+              <span className={styles.tagText}>顧客拠点：{upperCustomerSite}</span>
+              <button
+                type="button"
+                className={styles.tagClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClearFilter('customerSite');
+                }}
+                aria-label="顧客拠点タグを削除"
+              >
+                <FiX />
+              </button>
+            </div>
+          )}
+          {upperOrderSource && (
+            <div className={`${styles.tag} ${styles.tagActive}`}>
+              <span className={styles.tagText}>オーダ元：{upperOrderSource}</span>
+              <button
+                type="button"
+                className={styles.tagClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClearFilter('orderSource');
+                }}
+                aria-label="オーダ元タグを削除"
+              >
+                <FiX />
+              </button>
+            </div>
+          )}
         </div>
 
         <div className={styles.tableContainer}>
@@ -292,25 +404,123 @@ export const PartsRegistration = () => {
             hasError: false,
             isDisabled: false,
           };
-          setResults([...results, newRow]);
-          setToastMessage('パーツリクエストが登録されました');
+          const newRowWithFilter: RegistrationRow = {
+            ...newRow,
+            customerSite: upperCustomerSite || undefined,
+            orderSource: upperOrderSource || undefined,
+          };
+          setAllResults([...allResults, newRowWithFilter]);
+          success('パーツリクエストが登録されました');
         }}
         isRegistering={isRegistering}
         setIsRegistering={setIsRegistering}
         onCloseModal={handleCloseRequestModal}
       />
 
-      {/* トースト通知 */}
-      {toastMessage && (
-        <Toast
-          message={toastMessage}
-          type={toastMessage.includes('エラー') ? 'error' : 'success'}
-          duration={5000}
-          onClose={() => setToastMessage(null)}
-          position="top-center"
-        />
-      )}
+      <FilterPanel
+        isOpen={isFilterPanelOpen}
+        onClose={handleCloseFilterPanel}
+        bu={tempBu}
+        customerSite={tempCustomerSite}
+        orderSource={tempOrderSource}
+        onBuChange={setTempBu}
+        onCustomerSiteChange={setTempCustomerSite}
+        onOrderSourceChange={setTempOrderSource}
+        onApply={handleApplyFilter}
+      />
     </div>
+  );
+};
+
+interface FilterPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  bu: string;
+  customerSite: string;
+  orderSource: string;
+  onBuChange: (value: string) => void;
+  onCustomerSiteChange: (value: string) => void;
+  onOrderSourceChange: (value: string) => void;
+  onApply: () => void;
+}
+
+const FilterPanel = ({
+  isOpen,
+  onClose,
+  bu,
+  customerSite,
+  orderSource,
+  onBuChange,
+  onCustomerSiteChange,
+  onOrderSourceChange,
+  onApply,
+}: FilterPanelProps) => {
+  const buOptionsWithEmpty: SelectOption[] = [
+    { value: '', label: '選択してください' },
+    ...buOptions,
+  ];
+
+  const customerSiteOptionsWithEmpty: SelectOption[] = [
+    { value: '', label: '選択してください' },
+    ...customerSiteOptions,
+  ];
+
+  const orderSourceOptionsWithEmpty: SelectOption[] = [
+    { value: '', label: '選択してください' },
+    ...orderSourceOptions,
+  ];
+
+  return (
+    <SidePanel
+      isOpen={isOpen}
+      onClose={onClose}
+      title="フィルターを編集する"
+      position="right"
+      width="400px"
+    >
+      <div className={styles.filterPanelContent}>
+        <div className={styles.formRow}>
+          <div className={styles.formField}>
+            <Select
+              label="BU"
+              options={buOptionsWithEmpty}
+              value={bu}
+              onChange={(e) => onBuChange(e.target.value)}
+              placeholder="選択してください"
+              fullWidth
+            />
+          </div>
+          <div className={styles.formField}>
+            <Select
+              label="顧客拠点"
+              options={customerSiteOptionsWithEmpty}
+              value={customerSite}
+              onChange={(e) => onCustomerSiteChange(e.target.value)}
+              placeholder="選択してください"
+              fullWidth
+            />
+          </div>
+          <div className={styles.formField}>
+            <Select
+              label="オーダ元"
+              options={orderSourceOptionsWithEmpty}
+              value={orderSource}
+              onChange={(e) => onOrderSourceChange(e.target.value)}
+              placeholder="選択してください"
+              fullWidth
+            />
+          </div>
+        </div>
+        <div className={styles.filterPanelFooter}>
+          <Button variant="sub" onClick={onClose} fullWidth>
+            キャンセル
+          </Button>
+          <Button variant="default" onClick={onApply} fullWidth>
+            OK
+          </Button>
+        </div>
+      </div>
+    </SidePanel>
   );
 };
 
