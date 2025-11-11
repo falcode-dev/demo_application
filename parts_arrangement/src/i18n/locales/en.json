@@ -64,8 +64,8 @@
     }
   },
   "partsDetail": {
-    "title": "Parts Detail Information",
-    "notFound": "Parts detail information not found",
+    "title": "Parts Detail Search",
+    "notFound": "Parts detail search not found",
     "inventory": {
       "title": "Inventory Information",
       "warehouse": "Warehouse",
