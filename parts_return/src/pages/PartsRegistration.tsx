@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button, Select, Modal, Input } from '../components';
 import type { SelectOption } from '../components';
 import { getPartsReturnData, type PartsReturnRow } from '../services/mockData';
@@ -7,6 +8,7 @@ import { FiAlertCircle } from 'react-icons/fi';
 import styles from './PartsRegistration.module.css';
 
 export const PartsRegistration = () => {
+  const { t } = useTranslation();
   const { success } = useToastContext();
   const [results, setResults] = useState<PartsReturnRow[]>([]);
   const [selectedReturnIndex, setSelectedReturnIndex] = useState<number | null>(null);
@@ -65,7 +67,7 @@ export const PartsRegistration = () => {
                 const newResults = [...results];
                 newResults[selectedReturnIndex].isReturned = true;
                 setResults(newResults);
-                success('パーツ返却が登録されました');
+                success(t('partsReturn.registration.success'));
               }}
               isReturning={isReturning}
               setIsReturning={setIsReturning}
@@ -73,7 +75,7 @@ export const PartsRegistration = () => {
               renderAsScreen
             />
           ) : (
-            <p>パーツ情報を読み込み中です...</p>
+            <p>{t('partsReturn.registration.loading')}</p>
           )}
         </div>
       </div>
@@ -116,6 +118,7 @@ const ReturnInfoModal = ({
   onCloseModal,
   renderAsScreen = false,
 }: ReturnInfoModalProps) => {
+  const { t } = useTranslation();
   const [returnItems, setReturnItems] = useState<ReturnItem[]>([]);
   const [returnDestination, setReturnDestination] = useState<string>('');
 
@@ -146,16 +149,16 @@ const ReturnInfoModal = ({
   }
 
   const packageStatusOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: '未開封', label: '未開封' },
-    { value: '開封済み', label: '開封済み' },
+    { value: '', label: t('partsReturn.registration.modal.packageStatusOptions.default') },
+    { value: 'unopened', label: t('partsReturn.registration.modal.packageStatusOptions.unopened') },
+    { value: 'opened', label: t('partsReturn.registration.modal.packageStatusOptions.opened') },
   ];
 
   const returnDestinationOptions: SelectOption[] = [
-    { value: '', label: '選択してください' },
-    { value: '倉庫A', label: '倉庫A' },
-    { value: '倉庫B', label: '倉庫B' },
-    { value: '倉庫C', label: '倉庫C' },
+    { value: '', label: t('partsReturn.registration.modal.returnDestinationOptions.default') },
+    { value: 'warehouseA', label: t('partsReturn.registration.modal.returnDestinationOptions.warehouseA') },
+    { value: 'warehouseB', label: t('partsReturn.registration.modal.returnDestinationOptions.warehouseB') },
+    { value: 'warehouseC', label: t('partsReturn.registration.modal.returnDestinationOptions.warehouseC') },
   ];
 
 
@@ -237,10 +240,10 @@ const ReturnInfoModal = ({
   const footer = (
     <div className={footerClassName}>
       <Button variant="sub" onClick={handleCancel} disabled={isReturning}>
-        キャンセル
+        {t('partsReturn.registration.modal.footer.cancel')}
       </Button>
       <Button variant="default" onClick={handleRegister} loading={isReturning}>
-        登録
+        {t('partsReturn.registration.modal.footer.register')}
       </Button>
     </div>
   );
@@ -251,29 +254,29 @@ const ReturnInfoModal = ({
         {/* 選択したパーツ情報 */}
         <div className={styles.selectedPartsInfo}>
           <div className={styles.selectedPartsInfoRow}>
-            <span className={styles.selectedPartsLabel}>パーツ番号：</span>
+            <span className={styles.selectedPartsLabel}>{t('partsReturn.registration.modal.labels.partsNumber')}:</span>
             <span>{partsData.partsNumber}</span>
           </div>
           <div className={styles.selectedPartsInfoRow}>
-            <span className={styles.selectedPartsLabel}>手配数：</span>
+            <span className={styles.selectedPartsLabel}>{t('partsReturn.registration.modal.labels.arrangementQuantity')}:</span>
             <span>{partsData.arrangementQuantity}</span>
           </div>
           <div className={styles.selectedPartsInfoRow}>
-            <span className={styles.selectedPartsLabel}>パーツ名：</span>
+            <span className={styles.selectedPartsLabel}>{t('partsReturn.registration.modal.labels.partsName')}:</span>
             <span>{partsData.partsName}</span>
           </div>
           <div className={styles.selectedPartsInfoRow}>
-            <span className={styles.selectedPartsLabel}>出荷元倉庫：</span>
+            <span className={styles.selectedPartsLabel}>{t('partsReturn.registration.modal.labels.shippingWarehouse')}:</span>
             <span>{partsData.shippingWarehouse || '-'}</span>
           </div>
         </div>
 
         {/* 返却情報入力ヘッダー */}
         <div className={styles.returnInfoHeader}>
-          <h3 className={styles.returnInfoTitle}>返却情報入力</h3>
+          <h3 className={styles.returnInfoTitle}>{t('partsReturn.registration.modal.headerTitle')}</h3>
           <FiAlertCircle className={styles.alertIcon} />
           <p className={styles.returnInfoMessage}>
-            各パーツの開封状況と返却理由を個別に入力してください。例：1個は開封済み未使用、1個は未開封・手配ミス
+            {t('partsReturn.registration.modal.headerMessage')}
           </p>
         </div>
 
@@ -282,11 +285,11 @@ const ReturnInfoModal = ({
           <table className={styles.returnTable}>
             <thead>
               <tr>
-                <th>＃</th>
-                <th>返却数量</th>
-                <th>パッケージ開封状況</th>
-                <th>返却理由</th>
-                <th>WMSバッチ番号</th>
+                <th>{t('partsReturn.registration.modal.table.number')}</th>
+                <th>{t('partsReturn.registration.modal.table.returnQuantity')}</th>
+                <th>{t('partsReturn.registration.modal.table.packageStatus')}</th>
+                <th>{t('partsReturn.registration.modal.table.returnReason')}</th>
+                <th>{t('partsReturn.registration.modal.table.wmsBatchNumber')}</th>
               </tr>
             </thead>
             <tbody>
@@ -316,7 +319,7 @@ const ReturnInfoModal = ({
                       onChange={(e) =>
                         handleReturnItemChange(index, 'packageStatus', e.target.value)
                       }
-                      placeholder="選択してください"
+                      placeholder={t('partsReturn.registration.modal.placeholders.packageStatus')}
                       style={{ minWidth: '150px' }}
                     />
                   </td>
@@ -326,7 +329,7 @@ const ReturnInfoModal = ({
                       onChange={(e) =>
                         handleReturnItemChange(index, 'returnReason', e.target.value)
                       }
-                      placeholder="返却理由を入力"
+                      placeholder={t('partsReturn.registration.modal.placeholders.returnReason')}
                       style={{ minWidth: '200px' }}
                     />
                   </td>
@@ -336,7 +339,7 @@ const ReturnInfoModal = ({
                       onChange={(e) =>
                         handleReturnItemChange(index, 'wmsBatchNumber', e.target.value)
                       }
-                      placeholder="WMSバッチ番号を入力"
+                      placeholder={t('partsReturn.registration.modal.placeholders.wmsBatchNumber')}
                       style={{ minWidth: '150px' }}
                     />
                   </td>
@@ -349,11 +352,11 @@ const ReturnInfoModal = ({
         {/* 返却先選択 */}
         <div className={styles.returnDestinationField}>
           <Select
-            label="返却先"
+            label={t('partsReturn.registration.modal.labels.returnDestination')}
             options={returnDestinationOptions}
             value={returnDestination}
             onChange={(e) => setReturnDestination(e.target.value)}
-            placeholder="選択してください"
+            placeholder={t('partsReturn.registration.modal.placeholders.returnDestination')}
             fullWidth
           />
         </div>
@@ -370,7 +373,7 @@ const ReturnInfoModal = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="返却情報入力"
+      title={t('partsReturn.registration.modal.title')}
       footer={footer}
       size="large"
     >

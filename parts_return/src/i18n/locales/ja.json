@@ -8,54 +8,7 @@
     "searching": "検索中...",
     "select": "選択してください",
     "cancel": "キャンセル",
-    "ok": "OK",
-    "register": "登録",
-    "notSelected": "未選択"
-  },
-  "partsRegistration": {
-    "title": "パーツ実績登録（事前受注・FE手配）",
-    "searchButton": "パーツ検索",
-    "editFilterButton": "フィルターを編集する",
-    "bu": "BU",
-    "customerSite": "顧客拠点",
-    "orderSource": "オーダ元",
-    "registerSuccess": "{{count}}件のパーツが登録されました",
-    "filterModal": {
-      "title": "フィルターを編集する",
-      "bu": "BU",
-      "customerSite": "顧客拠点",
-      "orderSource": "オーダ元"
-    },
-    "table": {
-      "bu": "BU",
-      "partsNumber": "パーツ番号",
-      "partsName": "パーツ名称／型式（英）",
-      "consumptionQuantity": "消費数量",
-      "billingCategory": "請求区分",
-      "unit": "ユニット",
-      "signalCode": "シグナルコード",
-      "salesStatus": "販売ステータス",
-      "intelFlag": "インテルフラグ",
-      "consumableFlag": "消耗品フラグ",
-      "remarks": "備考",
-      "category": "区分"
-    },
-    "billingCategory": {
-      "paid": "有償",
-      "free": "無償",
-      "warranty": "保証"
-    },
-    "searchModal": {
-      "title": "パーツ検索",
-      "bu": "BU",
-      "partsNumber": "パーツ番号",
-      "partsNumberPlaceholder": "パーツ番号を入力",
-      "partsName": "パーツ名称／型式（英）",
-      "partsNamePlaceholder": "パーツ名称を入力",
-      "resultsCount": "検索結果: {{count}}件",
-      "noResults": "検索結果がありません",
-      "noSearchCondition": "検索条件を入力して検索してください"
-    }
+    "ok": "OK"
   },
   "partsDetail": {
     "title": "パーツ詳細情報",
@@ -63,13 +16,37 @@
     "inventory": {
       "title": "在庫情報",
       "warehouse": "倉庫",
-      "outbound": "出庫",
-      "available": "可能数",
+      "outboundAvailable": "出庫可能数",
       "allocated": "引当済数",
-      "initialStock": "最初在庫数"
+      "initialStock": "最小在庫数"
     },
     "alternativeParts": {
-      "title": "代替パーツ",
+      "filters": {
+        "alternative": "代替パーツ",
+        "all": "すべての代替パーツ"
+      },
+      "columns": {
+        "sequence": "SeqNo",
+        "buCode": "サプライヤコード",
+        "partCode": "品目コード",
+        "altPartsCode": "代替品目コード",
+        "altOld": "代/旧",
+        "compatibility": "互換性",
+        "description": "パーツ名称 日本語/英語",
+        "model": "型式 日本語/英語",
+        "latestInventory": "最新の在庫状況",
+        "signalCode": "シグナルコード",
+        "purchaseItemStatus": "購買品目コード",
+        "salesStatus": "販売ステータス",
+        "intelFlag": "インテルフラグ",
+        "salesRemark1": "販売備考1",
+        "salesRemark2": "販売備考2",
+        "englishRemark": "英語備考",
+        "factoryRemark": "工場備考",
+        "factoryLeadTime": "工場リードタイム",
+        "salesLeadTime": "販売リードタイム",
+        "exportRestrictionCategory": "輸出規制区分"
+      },
       "noParts": "代替パーツがありません"
     },
     "fields": {
@@ -106,6 +83,51 @@
       "autoAllocationPermissionCategory": "自動引当権限区分",
       "serialNumberProfile": "シリアル番号プロファイル"
     }
+  },
+  "partsReturn": {
+    "registration": {
+      "success": "パーツ返却が登録されました",
+      "loading": "パーツ情報を読み込み中です...",
+      "modal": {
+        "title": "返却情報入力",
+        "headerTitle": "返却情報入力",
+        "headerMessage": "各パーツの開封状況と返却理由を個別に入力してください。例：1個は開封済み未使用、1個は未開封・手配ミス",
+        "labels": {
+          "partsNumber": "パーツ番号",
+          "arrangementQuantity": "手配数",
+          "partsName": "パーツ名",
+          "shippingWarehouse": "出荷元倉庫",
+          "returnDestination": "返却先"
+        },
+        "table": {
+          "number": "＃",
+          "returnQuantity": "返却数量",
+          "packageStatus": "パッケージ開封状況",
+          "returnReason": "返却理由",
+          "wmsBatchNumber": "WMSバッチ番号"
+        },
+        "placeholders": {
+          "packageStatus": "選択してください",
+          "returnReason": "返却理由を入力",
+          "wmsBatchNumber": "WMSバッチ番号を入力",
+          "returnDestination": "選択してください"
+        },
+        "packageStatusOptions": {
+          "default": "選択してください",
+          "unopened": "未開封",
+          "opened": "開封済み"
+        },
+        "returnDestinationOptions": {
+          "default": "選択してください",
+          "warehouseA": "倉庫A",
+          "warehouseB": "倉庫B",
+          "warehouseC": "倉庫C"
+        },
+        "footer": {
+          "cancel": "キャンセル",
+          "register": "登録"
+        }
+      }
+    }
   }
 }
-
