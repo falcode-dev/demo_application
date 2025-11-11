@@ -5,7 +5,7 @@ import {
   getAlternativeParts,
   type PartsDetail as PartsDetailType,
   type InventoryInfo,
-  type PartsSearchResult,
+  type AlternativePart,
 } from '../services/mockData';
 import { openPartsDetail } from '../utils/navigation';
 import { closePage } from '../utils/powerApps';
@@ -13,7 +13,7 @@ import { closePage } from '../utils/powerApps';
 export const usePartsDetail = (partsNumber: string) => {
   const [detail, setDetail] = useState<PartsDetailType | null>(null);
   const [inventory, setInventory] = useState<InventoryInfo[]>([]);
-  const [alternativeParts, setAlternativeParts] = useState<PartsSearchResult[]>([]);
+  const [alternativeParts, setAlternativeParts] = useState<AlternativePart[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [inventoryLoading, setInventoryLoading] = useState<boolean>(false);
   const [region, setRegion] = useState<string>('JP');

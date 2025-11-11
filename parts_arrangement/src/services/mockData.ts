@@ -48,10 +48,35 @@ export interface PartsDetail {
 
 export interface InventoryInfo {
   warehouse: string;
-  outbound: string;
-  available: string;
+  outboundAvailable: string;
   allocated: string;
   initialStock: string;
+}
+
+export type AlternativePartFilter = 'alternative' | 'all';
+
+export interface AlternativePart {
+  sequence: string;
+  buCode: string;
+  partCode: string;
+  altPartsCode: string;
+  altOld: string;
+  compatibility: string;
+  description: string;
+  model: string;
+  latestInventory: string;
+  signalCode: string;
+  purchaseItemStatus: string;
+  salesStatus: string;
+  intelFlag: string;
+  salesRemark1: string;
+  salesRemark2: string;
+  englishRemark: string;
+  factoryRemark: string;
+  factoryLeadTime: string;
+  salesLeadTime: string;
+  exportRestrictionCategory: string;
+  type: AlternativePartFilter;
 }
 
 export const buOptions = [
@@ -297,6 +322,82 @@ const mockPartsDetailData: Record<string, PartsDetail> = {
   },
 };
 
+const mockAlternativePartsData: Record<string, AlternativePart[]> = {
+  P001: [
+    {
+      sequence: '1',
+      buCode: 'BU1',
+      partCode: 'P001',
+      altPartsCode: 'P002',
+      altOld: 'Alt',
+      compatibility: 'High',
+      description: '代替パーツA / Alternative Part A',
+      model: 'モデルA / Model A',
+      latestInventory: '25',
+      signalCode: 'SC010',
+      purchaseItemStatus: 'Available',
+      salesStatus: 'Active',
+      intelFlag: 'Y',
+      salesRemark1: 'Remark 1',
+      salesRemark2: 'Remark 2',
+      englishRemark: 'Sa',
+      factoryRemark: 'Factory note',
+      factoryLeadTime: '5d',
+      salesLeadTime: '7d',
+      exportRestrictionCategory: 'None',
+      type: 'alternative',
+    },
+    {
+      sequence: '2',
+      buCode: 'BU1',
+      partCode: 'P001',
+      altPartsCode: 'P003',
+      altOld: 'Old',
+      compatibility: 'Medium',
+      description: '代替パーツB / Alternative Part B',
+      model: 'モデルB / Model B',
+      latestInventory: '12',
+      signalCode: 'SC011',
+      purchaseItemStatus: 'Limited',
+      salesStatus: 'Planned',
+      intelFlag: 'N',
+      salesRemark1: 'Remark 1',
+      salesRemark2: 'Remark 2',
+      englishRemark: 'Sa',
+      factoryRemark: 'Factory memo',
+      factoryLeadTime: '8d',
+      salesLeadTime: '10d',
+      exportRestrictionCategory: 'Category A',
+      type: 'all',
+    },
+  ],
+  P002: [
+    {
+      sequence: '1',
+      buCode: 'BU1',
+      partCode: 'P002',
+      altPartsCode: 'P001',
+      altOld: 'Alt',
+      compatibility: 'High',
+      description: '代替パーツC / Alternative Part C',
+      model: 'モデルC / Model C',
+      latestInventory: '18',
+      signalCode: 'SC012',
+      purchaseItemStatus: 'Available',
+      salesStatus: 'Active',
+      intelFlag: 'N',
+      salesRemark1: 'Remark 1',
+      salesRemark2: 'Remark 2',
+      englishRemark: 'Sa',
+      factoryRemark: 'Factory note',
+      factoryLeadTime: '6d',
+      salesLeadTime: '9d',
+      exportRestrictionCategory: 'None',
+      type: 'alternative',
+    },
+  ],
+};
+
 export const searchParts = async (params: {
   bu?: string;
   partsNumber?: string;
@@ -342,31 +443,45 @@ export const getInventoryInfo = async (
   return [
     {
       warehouse: `${region}-倉庫1`,
-      outbound: '10',
-      available: '50',
+      outboundAvailable: '50',
       allocated: '5',
       initialStock: '65',
     },
     {
       warehouse: `${region}-倉庫2`,
-      outbound: '5',
-      available: '30',
-      allocated: '2',
-      initialStock: '37',
+      outboundAvailable: '42',
+      allocated: '3',
+      initialStock: '58',
+    },
+    {
+      warehouse: `${region}-倉庫3`,
+      outboundAvailable: '37',
+      allocated: '4',
+      initialStock: '49',
+    },
+    {
+      warehouse: `${region}-倉庫4`,
+      outboundAvailable: '21',
+      allocated: '1',
+      initialStock: '30',
+    },
+    {
+      warehouse: `${region}-倉庫5`,
+      outboundAvailable: '63',
+      allocated: '6',
+      initialStock: '78',
+    },
+    {
+      warehouse: `${region}-倉庫6`,
+      outboundAvailable: '18',
+      allocated: '0',
+      initialStock: '24',
     },
   ];
 };
 
-export const getAlternativeParts = async (partsNumber: string): Promise<PartsSearchResult[]> => {
+export const getAlternativeParts = async (partsNumber: string): Promise<AlternativePart[]> => {
   await new Promise((resolve) => setTimeout(resolve, 300));
 
-  const detail = mockPartsDetailData[partsNumber];
-  if (!detail || !detail.optimalAlternativeParts) {
-    return [];
-  }
-
-  const alternativePartsNumber = detail.optimalAlternativeParts;
-  const alternativePart = mockPartsData.find((p) => p.partsNumber === alternativePartsNumber);
-
-  return alternativePart ? [alternativePart] : [];
+  return mockAlternativePartsData[partsNumber] ?? [];
 };
