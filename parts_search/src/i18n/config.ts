@@ -4,6 +4,39 @@ import ja from "./locales/ja.json";
 import en from "./locales/en.json";
 
 /**
+ * localStorage/sessionStorageから言語を取得
+ */
+const getLanguageFromStorage = (): string | null => {
+  try {
+    // sessionStorageを優先（タブごとの設定）
+    const sessionLang = sessionStorage.getItem("powerAppsLanguage");
+    if (sessionLang === "ja" || sessionLang === "en") {
+      return sessionLang;
+    }
+    // localStorage（ブラウザ全体の設定）
+    const localLang = localStorage.getItem("powerAppsLanguage");
+    if (localLang === "ja" || localLang === "en") {
+      return localLang;
+    }
+  } catch (e) {
+    console.warn("Error getting language from storage:", e);
+  }
+  return null;
+};
+
+/**
+ * 言語をストレージに保存
+ */
+const saveLanguageToStorage = (lang: string): void => {
+  try {
+    sessionStorage.setItem("powerAppsLanguage", lang);
+    localStorage.setItem("powerAppsLanguage", lang);
+  } catch (e) {
+    console.warn("Error saving language to storage:", e);
+  }
+};
+
+/**
  * URLパラメータから言語を取得
  */
 const getLanguageFromUrl = (): string | null => {
@@ -11,10 +44,40 @@ const getLanguageFromUrl = (): string | null => {
     const params = new URLSearchParams(window.location.search);
     const lang = params.get("lang") || params.get("language");
     if (lang === "ja" || lang === "en") {
+      // URLパラメータで指定された場合は保存
+      saveLanguageToStorage(lang);
       return lang;
     }
   } catch (e) {
     console.warn("Error getting language from URL:", e);
+  }
+  return null;
+};
+
+/**
+ * opener（開いた元のウィンドウ）から言語を取得
+ */
+const getLanguageFromOpener = (): string | null => {
+  try {
+    // 別タブで開いた場合、openerからXrmを取得できる可能性がある
+    if (window.opener && !window.opener.closed) {
+      try {
+        const openerXrm = (window.opener as any)?.Xrm;
+        if (openerXrm && typeof openerXrm.Utility?.getGlobalContext === "function") {
+          const context = openerXrm.Utility.getGlobalContext();
+          const langId = context.userSettings?.languageId;
+          const lang = langId === 1041 ? "ja" : langId === 1033 ? "en" : null;
+          if (lang) {
+            saveLanguageToStorage(lang);
+            return lang;
+          }
+        }
+      } catch (e) {
+        // クロスオリジンの場合は無視
+      }
+    }
+  } catch (e) {
+    console.warn("Error getting language from opener:", e);
   }
   return null;
 };
@@ -85,7 +148,7 @@ const getLanguageFromXrm = (): string | null => {
 };
 
 /**
- * 言語を判定（優先順位: URLパラメータ > Xrm > ブラウザ言語）
+ * 言語を判定（優先順位: URLパラメータ > ストレージ > opener > Xrm > ブラウザ言語）
  */
 const detectLanguage = (): string => {
   // 1. URLパラメータから取得を試行
@@ -94,13 +157,26 @@ const detectLanguage = (): string => {
     return urlLang;
   }
 
-  // 2. Xrmから取得を試行
+  // 2. ストレージから取得を試行（別タブで開いた場合に有効）
+  const storageLang = getLanguageFromStorage();
+  if (storageLang) {
+    return storageLang;
+  }
+
+  // 3. openerから取得を試行（別タブで開いた場合）
+  const openerLang = getLanguageFromOpener();
+  if (openerLang) {
+    return openerLang;
+  }
+
+  // 4. Xrmから取得を試行
   const xrmLang = getLanguageFromXrm();
   if (xrmLang) {
+    saveLanguageToStorage(xrmLang);
     return xrmLang;
   }
 
-  // 3. ブラウザの言語設定にフォールバック
+  // 5. ブラウザの言語設定にフォールバック
   const browserLang = navigator.language.startsWith("ja") ? "ja" : "en";
   console.warn("Language detection: Using browser language as fallback:", browserLang);
   return browserLang;

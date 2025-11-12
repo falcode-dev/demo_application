@@ -12,6 +12,18 @@ function App() {
 
   useEffect(() => {
     /**
+     * 言語をストレージに保存
+     */
+    const saveLanguage = (lang: string) => {
+      try {
+        sessionStorage.setItem('powerAppsLanguage', lang);
+        localStorage.setItem('powerAppsLanguage', lang);
+      } catch (e) {
+        console.warn('Error saving language to storage:', e);
+      }
+    };
+
+    /**
      * Power Appsから言語設定を取得して更新
      * 別タブで開いた場合でも、postMessageで言語情報を受け取れるようにする
      */
@@ -22,7 +34,34 @@ function App() {
         const urlLang = params.get('lang') || params.get('language');
         if (urlLang === 'ja' || urlLang === 'en') {
           i18n.changeLanguage(urlLang);
+          saveLanguage(urlLang);
           return;
+        }
+
+        // ストレージから言語を取得（別タブで開いた場合に有効）
+        const storageLang = sessionStorage.getItem('powerAppsLanguage') || localStorage.getItem('powerAppsLanguage');
+        if (storageLang === 'ja' || storageLang === 'en') {
+          i18n.changeLanguage(storageLang);
+          return;
+        }
+
+        // openerから言語を取得（別タブで開いた場合）
+        if (window.opener && !window.opener.closed) {
+          try {
+            const openerXrm = (window.opener as any)?.Xrm;
+            if (openerXrm && typeof openerXrm.Utility?.getGlobalContext === 'function') {
+              const context = openerXrm.Utility.getGlobalContext();
+              const langId = context.userSettings?.languageId;
+              const lang = langId === 1041 ? 'ja' : langId === 1033 ? 'en' : null;
+              if (lang) {
+                i18n.changeLanguage(lang);
+                saveLanguage(lang);
+                return;
+              }
+            }
+          } catch (e) {
+            // クロスオリジンの場合は無視
+          }
         }
 
         // Xrmから言語を取得
@@ -53,6 +92,7 @@ function App() {
           const lang = langId === 1041 ? 'ja' : langId === 1033 ? 'en' : null;
           if (lang) {
             i18n.changeLanguage(lang);
+            saveLanguage(lang);
           }
         }
       } catch (e) {
@@ -63,15 +103,40 @@ function App() {
     // 初回実行
     updateLanguageFromPowerApps();
 
+    // 定期的に言語をチェック（別タブで開いた場合、openerが後から利用可能になる可能性がある）
+    const intervalId = setInterval(() => {
+      updateLanguageFromPowerApps();
+    }, 1000); // 1秒ごとにチェック（最初の数秒間）
+
+    // 5秒後にインターバルを停止
+    const timeoutId = setTimeout(() => {
+      clearInterval(intervalId);
+    }, 5000);
+
     // postMessageで言語変更を受け取る（Power Appsから送信される場合）
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'languageChange' && (event.data.language === 'ja' || event.data.language === 'en')) {
         i18n.changeLanguage(event.data.language);
+        saveLanguage(event.data.language);
+      }
+    };
+
+    // storageイベントで言語変更を検知（別タブ間で同期）
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'powerAppsLanguage' && (e.newValue === 'ja' || e.newValue === 'en')) {
+        i18n.changeLanguage(e.newValue);
       }
     };
 
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+      window.removeEventListener('message', handleMessage);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, [i18n]);
 
   return (
