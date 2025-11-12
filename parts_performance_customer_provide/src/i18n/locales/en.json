@@ -15,7 +15,7 @@
     "no": "No"
   },
   "partsRegistration": {
-    "title": "Parts Performance Registration (Pre-order, FE Arrangement, Migration)",
+    "title": "Parts Installed(Consignment/Customer Provided)",
     "searchButton": "Parts Search",
     "editFilterButton": "Edit Filter",
     "bu": "BU",
@@ -49,7 +49,7 @@
       "warranty": "Warranty"
     },
     "customerProvide": {
-      "title": "Parts Performance Registration",
+      "title": "Parts Installed(Consignment/Customer Provided)",
       "openRequestModal": "Register Parts Performance",
       "toastRegistered": "Parts request has been registered",
       "partsCategory": {
@@ -57,7 +57,7 @@
         "consignedStock": "Consigned Stock"
       },
       "requestModal": {
-        "title": "Register Parts Request",
+        "title": "Register Parts Performance",
         "fields": {
           "name": {
             "label": "Name",
