@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import './App.css';
 import './i18n/config';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PartsSearch } from './pages/PartsSearch';
 import { PartsDetail } from './pages/PartsDetail';
 import { useUrlParams } from './hooks/useUrlParams';
@@ -10,74 +10,28 @@ function App() {
   const partsNumber = useUrlParams();
   const { i18n } = useTranslation();
 
+  // URLパラメータの言語変更を監視してi18nの言語を更新
   useEffect(() => {
-    /**
-     * URLパラメータから言語を取得して更新（最優先）
-     * Power Appsから別タブで開く際は、?lang=ja または ?lang=en を渡す
-     */
-    const updateLanguageFromUrl = () => {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const urlLang = params.get('lang') || params.get('language');
-        if (urlLang === 'ja' || urlLang === 'en') {
-          i18n.changeLanguage(urlLang);
-          console.log('Language updated from URL parameter:', urlLang);
-          return;
+    const updateLanguage = () => {
+      const params = new URLSearchParams(window.location.search);
+      const lang = params.get('lang');
+      if (lang === 'ja' || lang === 'en') {
+        if (i18n.language !== lang) {
+          i18n.changeLanguage(lang);
         }
-      } catch (e) {
-        console.warn('Error getting language from URL:', e);
       }
     };
 
-    /**
-     * Xrmから言語を取得して更新（Power Apps内で開いた場合）
-     */
-    const updateLanguageFromXrm = () => {
-      try {
-        let xrm: any = null;
-        if ((window as any).Xrm) {
-          xrm = (window as any).Xrm;
-        } else if (window.parent && window.parent !== window) {
-          try {
-            if ((window.parent as any).Xrm) {
-              xrm = (window.parent as any).Xrm;
-            }
-          } catch (e) {
-            // クロスオリジンの場合は無視
-          }
-        } else if (window.top && window.top !== window) {
-          try {
-            if ((window.top as any).Xrm) {
-              xrm = (window.top as any).Xrm;
-            }
-          } catch (e) {
-            // クロスオリジンの場合は無視
-          }
-        }
+    // 初回読み込み時
+    updateLanguage();
 
-        if (xrm && typeof xrm.Utility?.getGlobalContext === 'function') {
-          const context = xrm.Utility.getGlobalContext();
-          const langId = context.userSettings?.languageId;
-          const lang = langId === 1041 ? 'ja' : langId === 1033 ? 'en' : null;
-          if (lang) {
-            i18n.changeLanguage(lang);
-            console.log('Language updated from Xrm:', lang);
-          }
-        }
-      } catch (e) {
-        console.warn('Error getting language from Xrm:', e);
-      }
+    // URL変更を監視
+    const handlePopState = () => {
+      updateLanguage();
     };
 
-    // 初回実行：URLパラメータを最優先でチェック
-    updateLanguageFromUrl();
-
-    // URLパラメータがない場合のみ、Xrmから取得を試行
-    const params = new URLSearchParams(window.location.search);
-    const urlLang = params.get('lang') || params.get('language');
-    if (!urlLang || (urlLang !== 'ja' && urlLang !== 'en')) {
-      updateLanguageFromXrm();
-    }
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, [i18n]);
 
   return (

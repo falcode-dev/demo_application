@@ -4,22 +4,20 @@ import ja from "./locales/ja.json";
 import en from "./locales/en.json";
 
 /**
- * URLパラメータから言語を取得（最優先）
- * Power Appsから別タブで開く際に、?lang=ja または ?lang=en を渡す
+ * URLパラメータから言語を取得
  */
 const getLanguageFromUrl = (): string | null => {
   try {
     const params = new URLSearchParams(window.location.search);
-    // lang または language パラメータをチェック
-    const lang = params.get("lang") || params.get("language");
-    if (lang === "ja" || lang === "en") {
-      console.log("Language detected from URL parameter:", lang);
+    const lang = params.get('lang');
+    if (lang === 'ja' || lang === 'en') {
       return lang;
     }
+    return null;
   } catch (e) {
-    console.warn("Error getting language from URL:", e);
+    console.error("Error getting language from URL:", e);
+    return null;
   }
-  return null;
 };
 
 /**
@@ -27,41 +25,19 @@ const getLanguageFromUrl = (): string | null => {
  * 1033: 英語, 1041: 日本語 など
  *
  * - モデル駆動型アプリの Web リソースでは Xrm は親フレーム(parent)に存在することが多い
- * - 別タブで開いた場合でも、親ウィンドウからXrmを取得できる可能性がある
  * - Utility.getGlobalContext() の呼び出し可否を安全に確認
  */
-const getLanguageFromXrm = (): string | null => {
+const getLanguageFromXrm = (): string => {
   try {
-    // ✅ Xrmを安全に取得（複数の方法を試行）
-    let xrm: any = null;
-
-    // 1. 現在のウィンドウのXrm
-    if ((window as any).Xrm) {
-      xrm = (window as any).Xrm;
-    }
-    // 2. 親フレームのXrm（iframe内の場合）
-    else if (window.parent && window.parent !== window) {
-      try {
-        if ((window.parent as any).Xrm) {
-          xrm = (window.parent as any).Xrm;
-        }
-      } catch (e) {
-        // クロスオリジンの場合は無視
-      }
-    }
-    // 3. トップウィンドウのXrm（別タブで開いた場合でも、同じオリジンなら取得可能）
-    else if (window.top && window.top !== window) {
-      try {
-        if ((window.top as any).Xrm) {
-          xrm = (window.top as any).Xrm;
-        }
-      } catch (e) {
-        // クロスオリジンの場合は無視
-      }
-    }
+    // ✅ Xrmを安全に取得（親フレーム優先）
+    const xrm =
+      (window as any).parent?.Xrm ||
+      (window as any).Xrm ||
+      null;
 
     if (!xrm) {
-      return null;
+      console.warn("Xrm not found — fallback to browser language");
+      return navigator.language.startsWith("ja") ? "ja" : "en";
     }
 
     // ✅ getGlobalContextが関数か確認
@@ -80,39 +56,31 @@ const getLanguageFromXrm = (): string | null => {
       }
     }
 
-    return null;
+    console.warn("getGlobalContext is not available — fallback to browser language");
+    return navigator.language.startsWith("ja") ? "ja" : "en";
   } catch (e) {
     console.error("Error getting Xrm language context:", e);
-    return null;
+    return navigator.language.startsWith("ja") ? "ja" : "en";
   }
 };
 
 /**
- * 言語を判定（優先順位: URLパラメータ > Xrm > ブラウザ言語）
- * 別タブで開く場合は、URLパラメータで言語を指定する必要がある
+ * Dataverse / ローカル環境両対応の言語判定
+ * 優先順位: URLパラメータ > Xrm > ブラウザ言語
  */
-const detectLanguage = (): string => {
-  // 1. URLパラメータから取得を試行（最優先・別タブで開く場合に必須）
+const getUserLanguage = (): string => {
+  // 1. URLパラメータから取得を試みる
   const urlLang = getLanguageFromUrl();
   if (urlLang) {
     return urlLang;
   }
 
-  // 2. Xrmから取得を試行（Power Apps内で開いた場合）
+  // 2. Xrmから取得を試みる
   const xrmLang = getLanguageFromXrm();
-  if (xrmLang) {
-    console.log("Language detected from Xrm:", xrmLang);
-    return xrmLang;
-  }
-
-  // 3. ブラウザの言語設定にフォールバック
-  const browserLang = navigator.language.startsWith("ja") ? "ja" : "en";
-  console.warn("Language detection: Using browser language as fallback:", browserLang);
-  return browserLang;
+  return xrmLang;
 };
 
-/** Dataverse / ローカル環境両対応の言語判定 */
-const userLang = detectLanguage();
+const userLang = getUserLanguage();
 
 i18n
   .use(initReactI18next)
