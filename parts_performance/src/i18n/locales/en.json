@@ -91,13 +91,37 @@
     "inventory": {
       "title": "Inventory Information",
       "warehouse": "Warehouse",
-      "outbound": "Outbound",
-      "available": "Available",
+      "outboundAvailable": "Available",
       "allocated": "Allocated",
       "initialStock": "Initial Stock"
     },
     "alternativeParts": {
-      "title": "Alternative Parts",
+      "filters": {
+        "alternative": "Alternative Parts",
+        "all": "All Alternative Parts"
+      },
+      "columns": {
+        "sequence": "Sequence",
+        "buCode": "BU Code",
+        "partCode": "Part Code",
+        "altPartsCode": "Alt Parts Code",
+        "altOld": "Alt/Old",
+        "compatibility": "Compat.",
+        "description": "Description JP/EN",
+        "model": "Model JP/EN",
+        "latestInventory": "Latest Inventory",
+        "signalCode": "Signal Code",
+        "purchaseItemStatus": "Purchase Item Status",
+        "salesStatus": "Sales Status",
+        "intelFlag": "Intel Flag",
+        "salesRemark1": "Sales Remark1",
+        "salesRemark2": "Sales Remark2",
+        "englishRemark": "XXX",
+        "factoryRemark": "XXX",
+        "factoryLeadTime": "XXX",
+        "salesLeadTime": "XXX",
+        "exportRestrictionCategory": "XXX"
+      },
       "noParts": "No alternative parts"
     },
     "fields": {

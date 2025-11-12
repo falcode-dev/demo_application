@@ -91,13 +91,37 @@
     "inventory": {
       "title": "在庫情報",
       "warehouse": "倉庫",
-      "outbound": "出庫",
-      "available": "可能数",
+      "outboundAvailable": "出庫可能数",
       "allocated": "引当済数",
-      "initialStock": "最初在庫数"
+      "initialStock": "最小在庫数"
     },
     "alternativeParts": {
-      "title": "代替パーツ",
+      "filters": {
+        "alternative": "代替パーツ",
+        "all": "すべての代替パーツ"
+      },
+      "columns": {
+        "sequence": "SeqNo",
+        "buCode": "サプライヤコード",
+        "partCode": "品目コード",
+        "altPartsCode": "代替品目コード",
+        "altOld": "代/旧",
+        "compatibility": "互換性",
+        "description": "パーツ名称 日本語/英語",
+        "model": "型式 日本語/英語",
+        "latestInventory": "最新の在庫状況",
+        "signalCode": "シグナルコード",
+        "purchaseItemStatus": "購買品目コード",
+        "salesStatus": "販売ステータス",
+        "intelFlag": "インテルフラグ",
+        "salesRemark1": "販売備考1",
+        "salesRemark2": "販売備考2",
+        "englishRemark": "英語備考",
+        "factoryRemark": "工場備考",
+        "factoryLeadTime": "工場リードタイム",
+        "salesLeadTime": "販売リードタイム",
+        "exportRestrictionCategory": "輸出規制区分"
+      },
       "noParts": "代替パーツがありません"
     },
     "fields": {

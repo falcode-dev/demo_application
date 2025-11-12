@@ -1,4 +1,6 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { FiChevronDown } from 'react-icons/fi';
 import { Spinner, Button } from '../components';
 import { usePartsDetail } from '../hooks/usePartsDetail';
 import styles from './PartsDetail.module.css';
@@ -21,6 +23,65 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
     handleAlternativePartsClick,
     handleClose,
   } = usePartsDetail(partsNumber);
+  const [alternativeFilter, setAlternativeFilter] = useState<'alternative' | 'all'>('alternative');
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+  const filterSelectRef = useRef<HTMLDivElement | null>(null);
+  const inventoryWrapperRef = useRef<HTMLDivElement | null>(null);
+
+  const filteredAlternativeParts = useMemo(() => {
+    if (alternativeFilter === 'all') {
+      return alternativeParts;
+    }
+    return alternativeParts.filter((item) => item.type === 'alternative');
+  }, [alternativeFilter, alternativeParts]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterSelectRef.current && !filterSelectRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsFilterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  const filterOptions: Array<{ value: 'alternative' | 'all'; label: string }> = useMemo(
+    () => [
+      { value: 'alternative', label: t('partsDetail.alternativeParts.filters.alternative') },
+      { value: 'all', label: t('partsDetail.alternativeParts.filters.all') },
+    ],
+    [t]
+  );
+
+  const handleFilterSelect = (value: 'alternative' | 'all') => {
+    setAlternativeFilter(value);
+    setIsFilterOpen(false);
+  };
+
+  const scrollInventoryToTop = () => {
+    if (inventoryWrapperRef.current) {
+      inventoryWrapperRef.current.scrollTop = 0;
+    }
+  };
+
+  const handleInventoryRefresh = () => {
+    scrollInventoryToTop();
+    loadInventory();
+  };
+
+  const handleRegionChange = (value: string) => {
+    scrollInventoryToTop();
+    setRegion(value);
+  };
 
   if (loading) {
     return (
@@ -192,7 +253,12 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
 
         <div className={styles.inventorySection}>
           <h2 className={styles.sectionTitle}>{t('partsDetail.inventory.title')}</h2>
-          <div className={styles.inventoryTableWrapper}>
+          <div
+            ref={inventoryWrapperRef}
+            className={`${styles.inventoryTableWrapper} ${
+              inventoryLoading ? styles.inventoryTableWrapperLoading : ''
+            }`}
+          >
             {inventoryLoading && (
               <div className={styles.inventoryLoading}>
                 <Spinner size="medium" variant="primary" />
@@ -202,8 +268,7 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
               <thead>
                 <tr>
                   <th>{t('partsDetail.inventory.warehouse')}</th>
-                  <th>{t('partsDetail.inventory.outbound')}</th>
-                  <th>{t('partsDetail.inventory.available')}</th>
+                  <th>{t('partsDetail.inventory.outboundAvailable')}</th>
                   <th>{t('partsDetail.inventory.allocated')}</th>
                   <th>{t('partsDetail.inventory.initialStock')}</th>
                 </tr>
@@ -213,15 +278,14 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
                   inventory.map((item, index) => (
                     <tr key={index}>
                       <td>{item.warehouse}</td>
-                      <td>{item.outbound}</td>
-                      <td>{item.available}</td>
+                      <td>{item.outboundAvailable}</td>
                       <td>{item.allocated}</td>
                       <td>{item.initialStock}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className={styles.emptyCell}>
+                    <td colSpan={4} className={styles.emptyCell}>
                       &nbsp;
                     </td>
                   </tr>
@@ -229,6 +293,8 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
               </tbody>
             </table>
           </div>
+
+          <div className={styles.inventoryControls}>
           <div className={styles.radioGroup}>
             {['JP', 'US', 'EU', 'CN', 'KR', 'SG', 'TW'].map((r) => (
               <label key={r} className={styles.radioLabel}>
@@ -237,7 +303,7 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
                   name="region"
                   value={r}
                   checked={region === r}
-                  onChange={(e) => setRegion(e.target.value)}
+                    onChange={(e) => handleRegionChange(e.target.value)}
                   className={styles.radioInput}
                 />
                 <span>{r}</span>
@@ -247,54 +313,109 @@ export const PartsDetail = ({ partsNumber }: PartsDetailProps) => {
           <div className={styles.updateButtonContainer}>
             <Button
               variant="default"
-              onClick={loadInventory}
+                onClick={handleInventoryRefresh}
               disabled={inventoryLoading}
+                className={styles.updateButton}
             >
               {t('common.update')}
             </Button>
           </div>
         </div>
+        </div>
+
       </div>
 
       <div className={styles.alternativeSection}>
-        <h2 className={styles.sectionTitle}>{t('partsDetail.alternativeParts.title')}</h2>
-        {alternativeParts.length > 0 ? (
+        <div className={styles.alternativeHeader} ref={filterSelectRef}>
+          <button
+            type="button"
+            className={styles.alternativeFilterButton}
+            onClick={() => setIsFilterOpen((prev) => !prev)}
+            aria-haspopup="listbox"
+            aria-expanded={isFilterOpen}
+          >
+            <span>{filterOptions.find((option) => option.value === alternativeFilter)?.label}</span>
+            <FiChevronDown
+              className={`${styles.alternativeFilterIcon} ${isFilterOpen ? styles.alternativeFilterIconOpen : ''}`}
+            />
+          </button>
+          {isFilterOpen && (
+            <ul className={styles.alternativeFilterOptions} role="listbox">
+              {filterOptions.map((option) => (
+                <li key={option.value}>
+                  <button
+                    type="button"
+                    className={`${styles.alternativeFilterOption} ${
+                      alternativeFilter === option.value ? styles.alternativeFilterOptionActive : ''
+                    }`}
+                    onClick={() => handleFilterSelect(option.value)}
+                    role="option"
+                    aria-selected={alternativeFilter === option.value}
+                  >
+                    {option.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        {filteredAlternativeParts.length > 0 ? (
           <div className={styles.alternativeTableWrapper}>
             <table className={styles.alternativeTable}>
               <thead>
                 <tr>
-                  <th>{t('partsRegistration.table.bu')}</th>
-                  <th>{t('partsRegistration.table.partsNumber')}</th>
-                  <th>{t('partsRegistration.table.partsName')}</th>
-                  <th>{t('partsRegistration.table.unit')}</th>
-                  <th>{t('partsRegistration.table.signalCode')}</th>
-                  <th>{t('partsRegistration.table.salesStatus')}</th>
-                  <th>{t('partsRegistration.table.intelFlag')}</th>
-                  <th>{t('partsRegistration.table.consumableFlag')}</th>
-                  <th>{t('partsRegistration.table.remarks')}</th>
-                  <th>{t('partsRegistration.table.category')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.sequence')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.buCode')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.partCode')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.altPartsCode')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.altOld')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.compatibility')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.description')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.model')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.latestInventory')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.signalCode')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.purchaseItemStatus')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.salesStatus')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.intelFlag')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.salesRemark1')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.salesRemark2')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.englishRemark')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.factoryRemark')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.factoryLeadTime')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.salesLeadTime')}</th>
+                  <th>{t('partsDetail.alternativeParts.columns.exportRestrictionCategory')}</th>
                 </tr>
               </thead>
               <tbody>
-                {alternativeParts.map((item, index) => (
-                  <tr key={index}>
-                    <td>{item.bu}</td>
+                {filteredAlternativeParts.map((item, index) => (
+                  <tr key={`${item.altPartsCode}-${index}`}>
+                    <td>{item.sequence}</td>
+                    <td>{item.buCode}</td>
+                    <td>{item.partCode}</td>
                     <td>
                       <button
                         className={styles.partsNumberLink}
-                        onClick={() => handleAlternativePartsClick(item.partsNumber)}
+                        onClick={() => handleAlternativePartsClick(item.altPartsCode)}
                       >
-                        {item.partsNumber}
+                        {item.altPartsCode}
                       </button>
                     </td>
-                    <td>{item.partsName}</td>
-                    <td>{item.unit}</td>
+                    <td>{item.altOld}</td>
+                    <td>{item.compatibility}</td>
+                    <td>{item.description}</td>
+                    <td>{item.model}</td>
+                    <td>{item.latestInventory}</td>
                     <td>{item.signalCode}</td>
+                    <td>{item.purchaseItemStatus}</td>
                     <td>{item.salesStatus}</td>
                     <td>{item.intelFlag}</td>
-                    <td>{item.consumableFlag}</td>
-                    <td>{item.remarks}</td>
-                    <td>{item.category}</td>
+                    <td>{item.salesRemark1}</td>
+                    <td>{item.salesRemark2}</td>
+                    <td>{item.englishRemark}</td>
+                    <td>{item.factoryRemark}</td>
+                    <td>{item.factoryLeadTime}</td>
+                    <td>{item.salesLeadTime}</td>
+                    <td>{item.exportRestrictionCategory}</td>
                   </tr>
                 ))}
               </tbody>

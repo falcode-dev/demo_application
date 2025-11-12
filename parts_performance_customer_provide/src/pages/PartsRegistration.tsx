@@ -3,7 +3,6 @@ import { Button, Select, Modal, Input } from '../components';
 import { useTranslation } from 'react-i18next';
 import type { SelectOption } from '../components';
 import type { PartsSearchResult } from '../services/mockData';
-import { openPartsDetail } from '../utils/navigation';
 import { useToastContext } from '../contexts/ToastContext';
 import styles from './PartsRegistration.module.css';
 
@@ -143,11 +142,6 @@ export const PartsRegistration = () => {
     setAllResults(newResults);
   };
 
-
-  const handlePartsNumberClick = (partsNumber: string) => {
-    openPartsDetail(partsNumber);
-  };
-
   return (
     <div className={styles.container}>
       <div className={styles.lowerSection}>
@@ -204,14 +198,7 @@ export const PartsRegistration = () => {
                         <span className={styles.checkboxCustom}></span>
                       </label>
                     </td>
-                    <td>
-                      <button
-                        className={styles.partsNumberLink}
-                        onClick={() => handlePartsNumberClick(item.partsNumber)}
-                      >
-                        {item.partsNumber}
-                      </button>
-                    </td>
+                    <td>{item.partsNumber}</td>
                     <td>{item.partsName}</td>
                     <td className={styles.quantityColumn}>
                       <input
